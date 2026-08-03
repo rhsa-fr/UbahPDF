@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
+import * as Icons from 'lucide-react';
 import {
   X,
   Play,
@@ -8,7 +9,6 @@ import {
   CheckCircle2,
   AlertTriangle,
   Settings,
-  Sparkles,
   Upload,
   Image as ImageIcon,
   FileText,
@@ -42,6 +42,7 @@ interface ToolWorkspaceProps {
 }
 
 export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) => {
+  const ToolHeaderIcon = (Icons as any)[tool.iconName] || Icons.FileText;
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [thumbnails, setThumbnails] = useState<PdfPageThumbnail[]>([]);
   const [pageRotations, setPageRotations] = useState<Map<number, number>>(new Map());
@@ -357,7 +358,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
               className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold"
               style={{ backgroundColor: `${tool.color}25`, color: tool.color }}
             >
-              <Sparkles className="w-5 h-5" />
+              <ToolHeaderIcon className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-lg font-bold text-white font-['Outfit']">{tool.name}</h2>
