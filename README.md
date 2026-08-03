@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="public/logo.png" width="120" alt="Tdoc Logo" style="border-radius: 20px; margin-bottom: 12px;" />
+  <img src="public/logo.svg" width="100" alt="Tdoc Logo" style="margin-bottom: 12px;" />
 
   # Tdoc - All-in-One Client-Side Document Converter
 
