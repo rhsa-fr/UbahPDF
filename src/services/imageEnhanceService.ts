@@ -188,3 +188,99 @@ export async function warpPerspective(
   dstCtx.putImageData(dstData, 0, 0);
   return dstCanvas.toDataURL('image/jpeg', 0.95);
 }
+
+/**
+ * Automatically detects paper document edges in a photo
+ * Returns 4 corners (top-left, top-right, bottom-right, bottom-left) in percentage (0-100%)
+ */
+export async function detectDocumentCorners(
+  imageSrc: string | File
+): Promise<[Point2D, Point2D, Point2D, Point2D]> {
+  const img = new Image();
+  await new Promise((resolve, reject) => {
+    img.onload = resolve;
+    img.onerror = reject;
+    if (typeof imageSrc === 'string') {
+      img.src = imageSrc;
+    } else {
+      const reader = new FileReader();
+      reader.onload = () => (img.src = reader.result as string);
+      reader.readAsDataURL(imageSrc);
+    }
+  });
+
+  const canvas = document.createElement('canvas');
+  const sampleSize = 100;
+  canvas.width = sampleSize;
+  canvas.height = sampleSize;
+  const ctx = canvas.getContext('2d');
+
+  if (!ctx) {
+    return [
+      { x: 5, y: 5 },
+      { x: 95, y: 5 },
+      { x: 95, y: 95 },
+      { x: 5, y: 95 },
+    ];
+  }
+
+  ctx.drawImage(img, 0, 0, sampleSize, sampleSize);
+  const imageData = ctx.getImageData(0, 0, sampleSize, sampleSize);
+  const data = imageData.data;
+
+  const brightness: number[] = new Array(sampleSize * sampleSize);
+  let maxLuminance = 0;
+  let minLuminance = 255;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+    brightness[i / 4] = lum;
+    if (lum > maxLuminance) maxLuminance = lum;
+    if (lum < minLuminance) minLuminance = lum;
+  }
+
+  const paperThreshold = minLuminance + (maxLuminance - minLuminance) * 0.45;
+
+  let minX = sampleSize, maxX = 0, minY = sampleSize, maxY = 0;
+  let found = false;
+
+  for (let y = 0; y < sampleSize; y++) {
+    for (let x = 0; x < sampleSize; x++) {
+      const lum = brightness[y * sampleSize + x];
+      if (lum >= paperThreshold) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+        found = true;
+      }
+    }
+  }
+
+  if (!found || maxX - minX < 20 || maxY - minY < 20) {
+    return [
+      { x: 8, y: 8 },
+      { x: 92, y: 8 },
+      { x: 92, y: 92 },
+      { x: 8, y: 92 },
+    ];
+  }
+
+  const paddingX = Math.max(1, Math.round((maxX - minX) * 0.02));
+  const paddingY = Math.max(1, Math.round((maxY - minY) * 0.02));
+
+  const left = Math.max(2, minX + paddingX);
+  const right = Math.min(98, maxX - paddingX);
+  const top = Math.max(2, minY + paddingY);
+  const bottom = Math.min(98, maxY - paddingY);
+
+  return [
+    { x: left, y: top },
+    { x: right, y: top },
+    { x: right, y: bottom },
+    { x: left, y: bottom },
+  ];
+}

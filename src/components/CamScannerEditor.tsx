@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Wand2, FileText, Sun, ImageIcon, Check, Plus, Sparkles } from 'lucide-react';
-import { enhanceDocumentImage, warpPerspective, type Point2D } from '../services/imageEnhanceService';
+import { Wand2, FileText, Sun, ImageIcon, Check, Plus, Sparkles, Scan } from 'lucide-react';
+import { enhanceDocumentImage, warpPerspective, detectDocumentCorners, type Point2D } from '../services/imageEnhanceService';
 
 interface CamScannerEditorProps {
   files: File[];
@@ -35,6 +35,22 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
     setOriginalPreviews(previews);
     setProcessedPreviews(previews);
   }, [files]);
+
+  // Auto detect paper edge boundaries on initial load or active page change
+  const autoDetectPaperCorners = async (srcUrl: string) => {
+    try {
+      const detected = await detectDocumentCorners(srcUrl);
+      setCorners(detected);
+    } catch (err) {
+      console.warn('Auto corner detection failed, using fallback:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (originalPreviews[activeIdx]) {
+      autoDetectPaperCorners(originalPreviews[activeIdx]);
+    }
+  }, [activeIdx, originalPreviews]);
 
   // Re-process active photo whenever filter or corner crop changes
   const applyFilterToCurrentPage = async (srcUrl: string) => {
@@ -147,13 +163,26 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
           })}
         </div>
 
-        <button
-          onClick={onAddMorePhotos}
-          className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0"
-        >
-          <Plus className="w-3.5 h-3.5 text-rose-400" />
-          <span>Tambah Halaman</span>
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => originalPreviews[activeIdx] && autoDetectPaperCorners(originalPreviews[activeIdx])}
+            className="px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            title="Deteksi Otomatis Tepi Kertas Dokumen"
+          >
+            <Scan className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Auto Detect Kertas</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onAddMorePhotos}
+            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5 text-rose-400" />
+            <span>Tambah Halaman</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Document Cropping & Warp Viewport */}
