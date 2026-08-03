@@ -1,0 +1,133 @@
+import type { Tool } from '../types';
+
+export const TOOLS: Tool[] = [
+  {
+    id: 'merge-pdf',
+    name: 'Merge PDF',
+    description: 'Gabungkan beberapa file PDF menjadi satu dokumen utuh dengan mudah.',
+    iconName: 'GitMerge',
+    category: 'pdf',
+    color: '#ef4444', // Red / Coral
+    gradient: 'from-red-500 to-rose-600',
+    accept: '.pdf',
+    multiple: true,
+    popular: true,
+  },
+  {
+    id: 'compress-pdf',
+    name: 'Compress PDF',
+    description: 'Kecilkan ukuran file PDF tanpa merusak kualitas teks & konten.',
+    iconName: 'Minimize2',
+    category: 'pdf',
+    color: '#10b981', // Emerald Green
+    gradient: 'from-emerald-500 to-teal-600',
+    accept: '.pdf',
+    multiple: false,
+    popular: true,
+  },
+  {
+    id: 'page-numbers',
+    name: 'Nomor Halaman PDF',
+    description: 'Tambahkan nomor halaman otomatis (Angka Arab, Romawi i/I, atau kustom) pada posisi mana pun.',
+    iconName: 'Hash',
+    category: 'pdf',
+    color: '#8b5cf6', // Purple
+    gradient: 'from-purple-500 to-indigo-600',
+    accept: '.pdf',
+    multiple: false,
+    popular: true,
+  },
+  {
+    id: 'split-pdf',
+    name: 'Split PDF',
+    description: 'Pisahkan halaman PDF atau ekstrak rentang halaman tertentu.',
+    iconName: 'Scissors',
+    category: 'pdf',
+    color: '#f97316', // Orange
+    gradient: 'from-orange-500 to-amber-600',
+    accept: '.pdf',
+    multiple: false,
+    popular: true,
+  },
+  {
+    id: 'image-to-pdf',
+    name: 'JPG/PNG to PDF',
+    description: 'Ubah gambar JPG, PNG, atau WebP menjadi file dokumen PDF.',
+    iconName: 'Image',
+    category: 'image',
+    color: '#3b82f6', // Blue
+    gradient: 'from-blue-500 to-cyan-600',
+    accept: 'image/png,image/jpeg,image/webp,.jpg,.jpeg,.png,.webp',
+    multiple: true,
+    popular: true,
+  },
+  {
+    id: 'pdf-to-image',
+    name: 'PDF to JPG/PNG',
+    description: 'Ekstrak setiap halaman dokumen PDF menjadi gambar resolusi tinggi.',
+    iconName: 'FileImage',
+    category: 'pdf',
+    color: '#8b5cf6', // Purple
+    gradient: 'from-purple-500 to-indigo-600',
+    accept: '.pdf',
+    multiple: false,
+    popular: true,
+  },
+  {
+    id: 'pdf-to-word',
+    name: 'PDF to Word / Text',
+    description: 'Ekstrak teks dan konten dari PDF menjadi dokumen Word (.docx) atau Text (.txt).',
+    iconName: 'FileText',
+    category: 'office',
+    color: '#2563eb', // Royal Blue
+    gradient: 'from-blue-600 to-indigo-700',
+    accept: '.pdf',
+    multiple: false,
+    popular: true,
+  },
+  {
+    id: 'word-to-pdf',
+    name: 'Word (.docx) to PDF',
+    description: 'Konversi dokumen Microsoft Word (.docx) langsung menjadi file PDF.',
+    iconName: 'FileType',
+    category: 'office',
+    color: '#0284c7', // Sky Blue
+    gradient: 'from-sky-500 to-blue-600',
+    accept: '.docx',
+    multiple: false,
+    popular: true,
+  },
+  {
+    id: 'rotate-pdf',
+    name: 'Rotate PDF',
+    description: 'Putar orientasi halaman PDF (90°, 180°, atau 270°) sesuai kebutuhan.',
+    iconName: 'RotateCw',
+    category: 'pdf',
+    color: '#10b981', // Emerald Green
+    gradient: 'from-emerald-500 to-teal-600',
+    accept: '.pdf',
+    multiple: false,
+  },
+  {
+    id: 'watermark-pdf',
+    name: 'Watermark PDF',
+    description: 'Tambahkan teks cap/watermark kustom pada seluruh halaman PDF.',
+    iconName: 'Stamp',
+    category: 'security',
+    color: '#ec4899', // Pink
+    gradient: 'from-pink-500 to-rose-500',
+    accept: '.pdf',
+    multiple: false,
+  },
+  {
+    id: 'reorder-pdf',
+    name: 'Urutkan Halaman PDF',
+    description: 'Atur ulang posisi halaman PDF secara visual dengan drag & click.',
+    iconName: 'ArrowUpDown',
+    category: 'pdf',
+    color: '#6366f1', // Indigo
+    gradient: 'from-indigo-500 to-violet-600',
+    accept: '.pdf',
+    multiple: false,
+  },
+];
