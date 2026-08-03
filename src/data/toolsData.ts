@@ -2,6 +2,18 @@ import type { Tool } from '../types';
 
 export const TOOLS: Tool[] = [
   {
+    id: 'scan-to-pdf',
+    name: 'Pindai / Scan Dokumen',
+    description: 'Foto dokumen dengan kamera HP, hilangkan bayangan & bersihkan kertas agar tampak jernih seperti baru.',
+    iconName: 'ScanLine',
+    category: 'pdf',
+    color: '#06b6d4', // Cyan
+    gradient: 'from-cyan-500 to-blue-600',
+    accept: 'image/*,.png,.jpg,.jpeg,.webp',
+    multiple: true,
+    popular: true,
+  },
+  {
     id: 'merge-pdf',
     name: 'Merge PDF',
     description: 'Gabungkan beberapa file PDF menjadi satu dokumen utuh dengan mudah.',

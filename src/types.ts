@@ -41,6 +41,11 @@ export interface ConversionOptions {
   imageFormat?: 'png' | 'jpeg';
   imageQuality?: number; // 0.1 to 1.0
 
+  // Scan options
+  scanFilterMode?: 'magic-color' | 'bw-clean' | 'grayscale' | 'original';
+  scanBrightness?: number;
+  scanContrast?: number;
+
   // Page Number options
   pageNumberFormat?: 'arabic' | 'roman-lower' | 'roman-upper';
   pageNumberStyle?: 'number-only' | 'page-x' | 'page-x-of-y';

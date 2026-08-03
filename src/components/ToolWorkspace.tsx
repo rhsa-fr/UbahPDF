@@ -12,7 +12,10 @@ import {
   Upload,
   Image as ImageIcon,
   FileText,
+  Wand2,
+  Sun,
 } from 'lucide-react';
+import { enhanceDocumentImage } from '../services/imageEnhanceService';
 import { FileDropzone } from './FileDropzone';
 import { PageReorderGrid } from './PageReorderGrid';
 import {
@@ -51,6 +54,9 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
     imageFormat: 'png',
     imageQuality: 0.9,
     compressLevel: 'recommended',
+    scanFilterMode: 'magic-color',
+    scanBrightness: 0,
+    scanContrast: 10,
     pageNumberFormat: 'arabic',
     pageNumberStyle: 'page-x-of-y',
     pageNumberPosition: 'bottom-right',
@@ -173,6 +179,31 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
         setResultData({
           data: mergedBytes,
           filename: 'Tdoc_Merged.pdf',
+          type: 'single',
+        });
+      } else if (tool.id === 'scan-to-pdf') {
+        setProgressText('Membersihkan bayangan & memperjernih dokumen...');
+        const enhancedFiles: File[] = [];
+
+        for (let i = 0; i < files.length; i++) {
+          const enhancedDataUrl = await enhanceDocumentImage(files[i].file, {
+            filterMode: options.scanFilterMode || 'magic-color',
+            brightness: options.scanBrightness || 0,
+            contrast: options.scanContrast || 10,
+          });
+
+          const res = await fetch(enhancedDataUrl);
+          const blob = await res.blob();
+          const fileObj = new File([blob], `scanned_${files[i].name}`, {
+            type: 'image/jpeg',
+          });
+          enhancedFiles.push(fileObj);
+        }
+
+        const pdfBytes = await imagesToPdf(enhancedFiles, options);
+        setResultData({
+          data: pdfBytes,
+          filename: `Tdoc_Scanned_${files[0].name.replace(/\.[^/.]+$/, '')}.pdf`,
           type: 'single',
         });
       } else if (tool.id === 'compress-pdf') {
@@ -383,6 +414,109 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
                 <Settings className="w-4 h-4 text-rose-400" />
                 <span>Pengaturan Konversi</span>
               </div>
+
+              {tool.id === 'scan-to-pdf' && (
+                <div className="space-y-4 text-xs">
+                  {/* Mode Filter Document Scan */}
+                  <div>
+                    <label className="block text-slate-400 mb-2 font-medium">Mode Filter Pembersih Dokumen</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {[
+                        {
+                          id: 'magic-color',
+                          label: 'Magic Color',
+                          desc: 'Warna Jernih',
+                          icon: Wand2,
+                        },
+                        {
+                          id: 'bw-clean',
+                          label: 'Hitam-Putih',
+                          desc: 'Putih Polos 100%',
+                          icon: FileText,
+                        },
+                        {
+                          id: 'grayscale',
+                          label: 'Grayscale',
+                          desc: 'Abu-abu Bersih',
+                          icon: Sun,
+                        },
+                        {
+                          id: 'original',
+                          label: 'Original',
+                          desc: 'Tanpa Filter',
+                          icon: ImageIcon,
+                        },
+                      ].map((mode) => {
+                        const IconComp = mode.icon;
+                        const isSelected = options.scanFilterMode === mode.id;
+                        return (
+                          <button
+                            key={mode.id}
+                            type="button"
+                            onClick={() =>
+                              setOptions({ ...options, scanFilterMode: mode.id as any })
+                            }
+                            className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all ${
+                              isSelected
+                                ? 'border-cyan-500 bg-cyan-500/10 shadow-md shadow-cyan-500/10 text-white'
+                                : 'border-slate-800 bg-slate-950/60 hover:bg-slate-900/80 text-slate-400'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              <IconComp className={`w-4 h-4 ${isSelected ? 'text-cyan-400' : 'text-slate-400'}`} />
+                              <span className="font-bold text-xs">{mode.label}</span>
+                            </div>
+                            <span className="text-[10px] text-slate-400">{mode.desc}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Brightness & Contrast Fine-Tuning */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-slate-400 mb-1">
+                        Kecerahan Tambahan: <span className="text-white font-bold">{options.scanBrightness}</span>
+                      </label>
+                      <input
+                        type="range"
+                        min="-40"
+                        max="40"
+                        step="5"
+                        value={options.scanBrightness || 0}
+                        onChange={(e) =>
+                          setOptions({
+                            ...options,
+                            scanBrightness: parseInt(e.target.value, 10),
+                          })
+                        }
+                        className="w-full accent-cyan-500 cursor-pointer"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-400 mb-1">
+                        Kontras / Ketajaman: <span className="text-white font-bold">{options.scanContrast}</span>
+                      </label>
+                      <input
+                        type="range"
+                        min="-20"
+                        max="50"
+                        step="5"
+                        value={options.scanContrast || 10}
+                        onChange={(e) =>
+                          setOptions({
+                            ...options,
+                            scanContrast: parseInt(e.target.value, 10),
+                          })
+                        }
+                        className="w-full accent-cyan-500 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {tool.id === 'compress-pdf' && (
                 <div className="space-y-3 text-xs">
