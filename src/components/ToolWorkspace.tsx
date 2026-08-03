@@ -18,6 +18,7 @@ import {
 import { enhanceDocumentImage } from '../services/imageEnhanceService';
 import { FileDropzone } from './FileDropzone';
 import { CameraScanner } from './CameraScanner';
+import { CamScannerEditor } from './CamScannerEditor';
 import { PageReorderGrid } from './PageReorderGrid';
 import {
   mergePdfs,
@@ -376,9 +377,29 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
 
         {/* Scrollable Body Content */}
         <div className="p-6 overflow-y-auto flex-1 space-y-6">
-          {/* File Upload Box or Camera Scanner */}
-          {tool.id === 'scan-to-pdf' && files.length === 0 ? (
-            <CameraScanner onPhotosCaptured={handleFilesAdded} />
+          {/* File Upload Box, Camera Viewfinder, or CamScanner Crop Editor */}
+          {tool.id === 'scan-to-pdf' ? (
+            files.length === 0 ? (
+              <CameraScanner onPhotosCaptured={handleFilesAdded} />
+            ) : (
+              <CamScannerEditor
+                files={files.map((f) => f.file)}
+                onAddMorePhotos={handleClearAll}
+                onFinishScan={(processedFiles) => {
+                  const uploaded = processedFiles.map((file) => ({
+                    id: Math.random().toString(36).substring(2, 9),
+                    file,
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                  }));
+                  setFiles(uploaded);
+                  setTimeout(() => {
+                    handleStartConversion();
+                  }, 100);
+                }}
+              />
+            )
           ) : (
             <FileDropzone
               tool={tool}

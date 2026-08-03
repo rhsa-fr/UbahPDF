@@ -100,11 +100,91 @@ export async function enhanceDocumentImage(
     } else {
       data[i] = r;
       data[i + 1] = g;
-      data[i + 2] = b;
     }
   }
 
   ctx.putImageData(imageData, 0, 0);
-
   return canvas.toDataURL('image/jpeg', 0.95);
+}
+
+export interface Point2D {
+  x: number;
+  y: number;
+}
+
+/**
+ * Perform 4-corner perspective transform (warp & straighten document)
+ */
+export async function warpPerspective(
+  imageSrc: string | File,
+  corners: [Point2D, Point2D, Point2D, Point2D]
+): Promise<string> {
+  const img = new Image();
+  await new Promise((resolve, reject) => {
+    img.onload = resolve;
+    img.onerror = reject;
+    if (typeof imageSrc === 'string') {
+      img.src = imageSrc;
+    } else {
+      const reader = new FileReader();
+      reader.onload = () => (img.src = reader.result as string);
+      reader.readAsDataURL(imageSrc);
+    }
+  });
+
+  const [p0, p1, p2, p3] = corners;
+
+  const widthA = Math.hypot(p1.x - p0.x, p1.y - p0.y);
+  const widthB = Math.hypot(p2.x - p3.x, p2.y - p3.y);
+  const targetWidth = Math.round(Math.max(widthA, widthB)) || 800;
+
+  const heightA = Math.hypot(p3.x - p0.x, p3.y - p0.y);
+  const heightB = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+  const targetHeight = Math.round(Math.max(heightA, heightB)) || 1100;
+
+  const srcCanvas = document.createElement('canvas');
+  srcCanvas.width = img.width;
+  srcCanvas.height = img.height;
+  const srcCtx = srcCanvas.getContext('2d');
+  if (!srcCtx) throw new Error('Canvas context failed');
+  srcCtx.drawImage(img, 0, 0);
+
+  const srcData = srcCtx.getImageData(0, 0, img.width, img.height);
+
+  const dstCanvas = document.createElement('canvas');
+  dstCanvas.width = targetWidth;
+  dstCanvas.height = targetHeight;
+  const dstCtx = dstCanvas.getContext('2d');
+  if (!dstCtx) throw new Error('Canvas context failed');
+
+  const dstData = dstCtx.createImageData(targetWidth, targetHeight);
+
+  for (let v = 0; v < targetHeight; v++) {
+    const vRatio = v / (targetHeight - 1 || 1);
+    for (let u = 0; u < targetWidth; u++) {
+      const uRatio = u / (targetWidth - 1 || 1);
+
+      const topX = p0.x + uRatio * (p1.x - p0.x);
+      const topY = p0.y + uRatio * (p1.y - p0.y);
+
+      const botX = p3.x + uRatio * (p2.x - p3.x);
+      const botY = p3.y + uRatio * (p2.y - p3.y);
+
+      const srcX = Math.round(topX + vRatio * (botX - topX));
+      const srcY = Math.round(topY + vRatio * (botY - topY));
+
+      const dstIdx = (v * targetWidth + u) * 4;
+
+      if (srcX >= 0 && srcX < img.width && srcY >= 0 && srcY < img.height) {
+        const srcIdx = (srcY * img.width + srcX) * 4;
+        dstData.data[dstIdx] = srcData.data[srcIdx];
+        dstData.data[dstIdx + 1] = srcData.data[srcIdx + 1];
+        dstData.data[dstIdx + 2] = srcData.data[srcIdx + 2];
+        dstData.data[dstIdx + 3] = srcData.data[srcIdx + 3];
+      }
+    }
+  }
+
+  dstCtx.putImageData(dstData, 0, 0);
+  return dstCanvas.toDataURL('image/jpeg', 0.95);
 }
