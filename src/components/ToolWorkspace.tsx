@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { enhanceDocumentImage } from '../services/imageEnhanceService';
 import { FileDropzone } from './FileDropzone';
+import { CameraScanner } from './CameraScanner';
 import { PageReorderGrid } from './PageReorderGrid';
 import {
   mergePdfs,
@@ -374,14 +375,18 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
 
         {/* Scrollable Body Content */}
         <div className="p-6 overflow-y-auto flex-1 space-y-6">
-          {/* File Upload Box */}
-          <FileDropzone
-            tool={tool}
-            files={files}
-            onFilesAdded={handleFilesAdded}
-            onRemoveFile={handleRemoveFile}
-            onClearAll={handleClearAll}
-          />
+          {/* File Upload Box or Camera Scanner */}
+          {tool.id === 'scan-to-pdf' && files.length === 0 ? (
+            <CameraScanner onPhotosCaptured={handleFilesAdded} />
+          ) : (
+            <FileDropzone
+              tool={tool}
+              files={files}
+              onFilesAdded={handleFilesAdded}
+              onRemoveFile={handleRemoveFile}
+              onClearAll={handleClearAll}
+            />
+          )}
 
           {/* Thumbnail Preview & Visual Page Tools */}
           {isLoadingThumbnails && (
