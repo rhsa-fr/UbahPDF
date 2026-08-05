@@ -1,50 +1,60 @@
 import React from 'react';
-import { FileText, Shield, Zap, Heart } from 'lucide-react';
+import { ShieldCheck, Zap } from 'lucide-react';
+import { TdocLogo } from './TdocLogo';
 
 export const Footer: React.FC = () => {
   return (
     <footer className="border-t border-slate-200 bg-white pt-12 pb-8 text-xs text-slate-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Top Info Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-10 border-b border-slate-100">
+          {/* Brand Info */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-rose-500 to-indigo-600 flex items-center justify-center text-white shadow-sm">
-                <FileText className="w-4 h-4" />
-              </div>
-              <span className="font-bold text-lg text-slate-900 font-['Outfit']">UbahPDF</span>
+            <div className="flex items-center gap-2.5">
+              <TdocLogo size={32} />
+              <span className="font-extrabold text-xl text-slate-900 font-['Outfit']">UbahPDF</span>
             </div>
             <p className="text-slate-500 text-xs leading-relaxed max-w-sm">
-              Platform konversi dokumen PDF gratis serbaguna dengan teknologi pemrosesan client-side WebAssembly untuk privasi maksimal file Anda.
+              Solusi pengolahan PDF cepat, gratis, dan serbaguna di Indonesia. Diproses 100% secara lokal di browser Anda tanpa pernah menyimpan file ke server luar.
             </p>
           </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-slate-900 font-semibold text-sm font-['Outfit']">
-              <Shield className="w-4 h-4 text-emerald-600" />
-              <span>Privasi Terjamin</span>
+          {/* Value Proposition 1 */}
+          <div className="space-y-2.5">
+            <div className="flex items-center gap-2 text-slate-900 font-bold text-sm font-['Outfit']">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span>Jaminan Privasi 100%</span>
             </div>
             <p className="text-slate-500 text-xs leading-relaxed">
-              Semua file dikonversi secara lokal di dalam browser Anda. Kami tidak menyimpan, mengunggah, atau membagikan dokumen Anda ke server mana pun.
+              Dokumen rahasia, ijazah, atau surat dinas Anda diproses langsung di memori perangkat Anda. Data Anda tidak pernah keluar dari browser.
             </p>
           </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-slate-900 font-semibold text-sm font-['Outfit']">
-              <Zap className="w-4 h-4 text-amber-500" />
-              <span>Kecepatan Tinggi</span>
+          {/* Value Proposition 2 */}
+          <div className="space-y-2.5">
+            <div className="flex items-center gap-2 text-slate-900 font-bold text-sm font-['Outfit']">
+              <Zap className="w-4 h-4 text-rose-500" />
+              <span>Tanpa Batasan & Gratis</span>
             </div>
             <p className="text-slate-500 text-xs leading-relaxed">
-              Nikmati kecepatan manipulasi dan ekstraksi PDF tanpa harus menunggu antrean upload atau kuota harian.
+              Konversi PDF ke Word, kompresi file, hingga gabung PDF tanpa perlu berlangganan, tanpa daftar akun, dan tanpa antrean.
             </p>
           </div>
         </div>
 
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400 text-[11px]">
-          <p>© {new Date().getFullYear()} UbahPDF. Dibuat dengan presisi tinggi.</p>
-          <div className="flex items-center gap-1">
-            <span>Dibuat dengan</span>
-            <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 inline" />
-            <span>untuk pengolahan dokumen cepat</span>
+        {/* Bottom Copyright & Links */}
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 text-[11px]">
+          <div className="flex items-center gap-2">
+            <p>© {new Date().getFullYear()} UbahPDF Indonesia. Hak Cipta Dilindungi.</p>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 text-[10px] font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block" />
+              <span>Sistem Aktif & Aman</span>
+            </div>
+            <span className="text-slate-300">|</span>
+            <span className="text-slate-500 font-medium">Buatan Indonesia 🇮🇩</span>
           </div>
         </div>
       </div>
