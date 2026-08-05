@@ -130,4 +130,39 @@ export const TOOLS: Tool[] = [
     accept: '.pdf',
     multiple: false,
   },
+  {
+    id: 'sign-pdf',
+    name: 'Tanda Tangani PDF',
+    description: 'Gambar atau upload tanda tangan digital dan tempelkan ke halaman PDF.',
+    iconName: 'PenTool',
+    category: 'security',
+    color: '#10b981', // Emerald
+    gradient: 'from-emerald-500 to-teal-600',
+    accept: '.pdf',
+    multiple: false,
+    popular: true,
+  },
+  {
+    id: 'delete-pages',
+    name: 'Hapus Halaman PDF',
+    description: 'Pilih dan hapus halaman yang tidak diinginkan dari dokumen PDF Anda.',
+    iconName: 'Trash2',
+    category: 'pdf',
+    color: '#ef4444', // Red
+    gradient: 'from-rose-500 to-red-600',
+    accept: '.pdf',
+    multiple: false,
+    popular: true,
+  },
+  {
+    id: 'protect-pdf',
+    name: 'Lindungi PDF',
+    description: 'Kunci dokumen PDF dengan kata sandi (password) agar aman dari akses tidak sah.',
+    iconName: 'Lock',
+    category: 'security',
+    color: '#8b5cf6', // Purple
+    gradient: 'from-purple-500 to-indigo-600',
+    accept: '.pdf',
+    multiple: false,
+  },
 ];

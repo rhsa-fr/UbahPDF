@@ -67,6 +67,15 @@ export interface ConversionOptions {
 
   // Password options
   password?: string;
+  userPassword?: string;
+
+  // Signature options
+  signatureDataUrl?: string;
+  signaturePage?: number;
+  signatureScale?: number;
+
+  // Delete pages options
+  deletePagesList?: number[];
 }
 
 export type ProcessingStatus = 'idle' | 'processing' | 'success' | 'error';

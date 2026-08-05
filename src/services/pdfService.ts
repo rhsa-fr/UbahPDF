@@ -457,3 +457,119 @@ export async function addPageNumbers(
 
   return await pdfDoc.save();
 }
+
+/**
+ * Sign PDF by stamping a signature PNG image onto specified page (1-based index)
+ */
+export async function signPdf(
+  file: File,
+  signatureDataUrl: string,
+  options: ConversionOptions = {}
+): Promise<Uint8Array> {
+  if (!signatureDataUrl) {
+    throw new Error('Silakan gambar atau upload tanda tangan terlebih dahulu.');
+  }
+
+  const arrayBuffer = await readFileAsArrayBuffer(file);
+  const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+
+  const targetPageNum = options.signaturePage || 1;
+  const pages = pdfDoc.getPages();
+  if (targetPageNum < 1 || targetPageNum > pages.length) {
+    throw new Error('Halaman tanda tangan tidak valid.');
+  }
+
+  const page = pages[targetPageNum - 1];
+  const { width } = page.getSize();
+
+  // Embed signature image (PNG or JPG)
+  let signatureImage;
+  if (signatureDataUrl.startsWith('data:image/png')) {
+    signatureImage = await pdfDoc.embedPng(signatureDataUrl);
+  } else {
+    signatureImage = await pdfDoc.embedJpg(signatureDataUrl);
+  }
+
+  const scaleFactor = options.signatureScale || 0.4;
+  const sigDims = signatureImage.scale(scaleFactor);
+
+  // Default placement: bottom right corner with margin
+  const x = Math.max(20, width - sigDims.width - 40);
+  const y = 40;
+
+  page.drawImage(signatureImage, {
+    x,
+    y,
+    width: sigDims.width,
+    height: sigDims.height,
+  });
+
+  return await pdfDoc.save();
+}
+
+/**
+ * Delete specific page numbers (1-based index) from a PDF document
+ */
+export async function deletePdfPages(
+  file: File,
+  pageNumbersToDelete: number[]
+): Promise<Uint8Array> {
+  const arrayBuffer = await readFileAsArrayBuffer(file);
+  const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+  const totalPages = pdfDoc.getPageCount();
+
+  const toDeleteSet = new Set(pageNumbersToDelete);
+  const pagesToKeep: number[] = [];
+
+  for (let i = 1; i <= totalPages; i++) {
+    if (!toDeleteSet.has(i)) {
+      pagesToKeep.push(i);
+    }
+  }
+
+  if (pagesToKeep.length === 0) {
+    throw new Error('Dokumen tidak boleh kosong (sisakan setidaknya 1 halaman).');
+  }
+
+  return await splitPdf(file, pagesToKeep);
+}
+
+/**
+ * Protect PDF with user password
+ */
+export async function protectPdf(
+  file: File,
+  userPassword: string
+): Promise<Uint8Array> {
+  if (!userPassword || !userPassword.trim()) {
+    throw new Error('Silakan masukkan kata sandi (password) untuk mengunci PDF.');
+  }
+
+  const images = await pdfToImages(file, { imageFormat: 'jpeg', imageQuality: 0.92 });
+  if (images.length === 0) {
+    throw new Error('Gagal membaca halaman PDF.');
+  }
+
+  const doc = new jsPDF({
+    orientation: 'p',
+    unit: 'pt',
+    format: 'a4',
+    encryption: {
+      userPassword: userPassword.trim(),
+      ownerPassword: userPassword.trim() + '_owner',
+      userPermissions: ['print', 'copy'],
+    },
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  for (let i = 0; i < images.length; i++) {
+    if (i > 0) doc.addPage();
+    doc.addImage(images[i].dataUrl, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+  }
+
+  const pdfArrayBuffer = doc.output('arraybuffer');
+  return new Uint8Array(pdfArrayBuffer);
+}
+

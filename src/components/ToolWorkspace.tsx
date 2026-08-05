@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { FileDropzone } from './FileDropzone';
 import { PageReorderGrid } from './PageReorderGrid';
+import { SignatureCanvas } from './SignatureCanvas';
 import {
   mergePdfs,
   splitPdf,
@@ -27,6 +28,9 @@ import {
   reorderPdfPages,
   compressPdf,
   addPageNumbers,
+  signPdf,
+  deletePdfPages,
+  protectPdf,
 } from '../services/pdfService';
 import { textToDocx, docxToPdf } from '../services/docService';
 import { downloadFile, parsePageRanges, formatBytes } from '../services/fileUtils';
@@ -282,6 +286,40 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
           filename: `UbahPDF_Reordered_${files[0].name}`,
           type: 'single',
         });
+      } else if (tool.id === 'sign-pdf') {
+        setProgressText('Menempelkan tanda tangan ke PDF...');
+        if (!options.signatureDataUrl) {
+          throw new Error('Silakan gambar atau upload tanda tangan terlebih dahulu.');
+        }
+        const signedBytes = await signPdf(files[0].file, options.signatureDataUrl, options);
+        setResultData({
+          data: signedBytes,
+          filename: `UbahPDF_Signed_${files[0].name}`,
+          type: 'single',
+        });
+      } else if (tool.id === 'delete-pages') {
+        setProgressText('Menghapus halaman PDF...');
+        const pagesToDelete = thumbnails.filter((t) => !t.selected).map((t) => t.pageNumber);
+        if (pagesToDelete.length === 0) {
+          throw new Error('Pilih setidaknya 1 halaman yang ingin dihapus (klik thumbnail halaman di atas).');
+        }
+        const cleanedBytes = await deletePdfPages(files[0].file, pagesToDelete);
+        setResultData({
+          data: cleanedBytes,
+          filename: `UbahPDF_Cleaned_${files[0].name}`,
+          type: 'single',
+        });
+      } else if (tool.id === 'protect-pdf') {
+        setProgressText('Mengunci file PDF dengan kata sandi...');
+        if (!options.userPassword || !options.userPassword.trim()) {
+          throw new Error('Silakan masukkan kata sandi (password) untuk mengunci PDF.');
+        }
+        const protectedBytes = await protectPdf(files[0].file, options.userPassword);
+        setResultData({
+          data: protectedBytes,
+          filename: `UbahPDF_Protected_${files[0].name}`,
+          type: 'single',
+        });
       }
 
       setStatus('success');
@@ -368,7 +406,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
               onRotatePage={tool.id === 'rotate-pdf' ? handleRotatePage : undefined}
               onMovePage={tool.id === 'reorder-pdf' ? handleMovePage : undefined}
               mode={
-                tool.id === 'split-pdf'
+                tool.id === 'split-pdf' || tool.id === 'delete-pages'
                   ? 'split'
                   : tool.id === 'rotate-pdf'
                   ? 'rotate'
@@ -711,7 +749,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
 
               {tool.id === 'split-pdf' && (
                 <div className="text-xs">
-                  <label className="block text-slate-600 mb-1">
+                  <label className="block text-slate-600 mb-1 font-medium">
                     Rentang Halaman Kustom (Opsional, misal: 1-3, 5, 8-10)
                   </label>
                   <input
@@ -721,6 +759,62 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
                     placeholder="Kosongkan untuk menggunakan hasil klik pratinjau di atas"
                     className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500"
                   />
+                </div>
+              )}
+
+              {tool.id === 'sign-pdf' && (
+                <div className="space-y-4 text-xs">
+                  <SignatureCanvas
+                    onSaveSignature={(dataUrl) =>
+                      setOptions({ ...options, signatureDataUrl: dataUrl })
+                    }
+                    savedDataUrl={options.signatureDataUrl}
+                  />
+
+                  {thumbnails.length > 0 && (
+                    <div className="flex items-center gap-3">
+                      <label className="text-slate-700 font-semibold shrink-0">
+                        Tempel pada Halaman Ke-:
+                      </label>
+                      <select
+                        value={options.signaturePage || 1}
+                        onChange={(e) =>
+                          setOptions({ ...options, signaturePage: parseInt(e.target.value) })
+                        }
+                        className="p-2 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-emerald-500 font-semibold"
+                      >
+                        {thumbnails.map((t) => (
+                          <option key={t.pageNumber} value={t.pageNumber}>
+                            Halaman {t.pageNumber}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {tool.id === 'delete-pages' && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+                  💡 Klik pada thumbnail halaman di atas yang ingin Anda HAPUS. Halaman yang terpilih akan ditandai.
+                </div>
+              )}
+
+              {tool.id === 'protect-pdf' && (
+                <div className="space-y-3 text-xs">
+                  <label className="block text-slate-700 font-bold">
+                    Masukkan Kata Sandi (Password) Pengunci PDF
+                  </label>
+                  <input
+                    type="password"
+                    value={options.userPassword || ''}
+                    onChange={(e) => setOptions({ ...options, userPassword: e.target.value })}
+                    placeholder="Ketik password untuk mengunci file..."
+                    className="w-full p-3 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-purple-500 font-medium"
+                  />
+                  <p className="text-[11px] text-slate-500">
+                    File PDF hasil unduhan akan meminta password ini setiap kali dibuka di aplikasi pembaca PDF.
+                  </p>
                 </div>
               )}
             </div>
