@@ -31,6 +31,10 @@ export const PdfSignatureOverlay: React.FC<PdfSignatureOverlayProps> = ({
 
   const handlePointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
+    const elem = e.currentTarget as HTMLElement;
+    if (elem.setPointerCapture) {
+      elem.setPointerCapture(e.pointerId);
+    }
     setIsDragging(true);
     setDragStart({ x: e.clientX, y: e.clientY });
   };
@@ -50,8 +54,12 @@ export const PdfSignatureOverlay: React.FC<PdfSignatureOverlayProps> = ({
     setDragStart({ x: e.clientX, y: e.clientY });
   };
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (e: React.PointerEvent) => {
     setIsDragging(false);
+    const elem = e.currentTarget as HTMLElement;
+    if (elem.releasePointerCapture && elem.hasPointerCapture(e.pointerId)) {
+      elem.releasePointerCapture(e.pointerId);
+    }
   };
 
   if (!thumbnail) {
@@ -101,6 +109,8 @@ export const PdfSignatureOverlay: React.FC<PdfSignatureOverlayProps> = ({
         {/* Draggable Signature Overlay Box */}
         <div
           onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
           style={{
             left: `${posX}%`,
             top: `${posY}%`,
