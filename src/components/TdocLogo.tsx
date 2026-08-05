@@ -1,84 +1,62 @@
 import React from 'react';
 
-interface TdocLogoProps {
+interface LogoProps {
   className?: string;
   size?: number;
 }
 
-export const TdocLogo: React.FC<TdocLogoProps> = ({ className = '', size = 36 }) => {
+export const TdocLogo: React.FC<LogoProps> = ({ className = '', size = 36 }) => {
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 48 48"
+      viewBox="0 0 40 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={`transition-transform duration-300 group-hover:scale-110 ${className}`}
+      className={`transition-transform duration-300 group-hover:scale-105 ${className}`}
     >
       <defs>
-        <linearGradient id="tdocGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id="cleanUbahPdf" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#f43f5e" />
-          <stop offset="50%" stopColor="#a855f7" />
-          <stop offset="100%" stopColor="#6366f1" />
+          <stop offset="100%" stopColor="#8b5cf6" />
         </linearGradient>
-
-        <linearGradient id="tdocGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#fb7185" />
-          <stop offset="100%" stopColor="#38bdf8" />
-        </linearGradient>
-
-        <filter id="tdocGlow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="2.5" result="blur" />
-          <feComposite in="SourceGraphic" in2="blur" operator="over" />
-        </filter>
       </defs>
 
-      {/* Central Floating Document Card */}
-      <path
-        d="M 17 12 H 27 L 33 18 V 34 C 33 35.657 31.657 37 30 37 H 17 C 15.343 37 14 35.657 14 34 V 15 C 14 13.343 15.343 12 17 12 Z"
-        fill="url(#tdocGrad1)"
-        fillOpacity="0.2"
-        stroke="url(#tdocGrad1)"
-        strokeWidth="2.5"
-      />
-      <path d="M 27 12 V 18 H 33" stroke="url(#tdocGrad1)" strokeWidth="2.5" strokeLinejoin="round" />
-
-      {/* Outer Conversion Arrows Arc */}
-      <path
-        d="M 24 5 A 19 19 0 0 1 42 21"
-        stroke="url(#tdocGrad1)"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-        filter="url(#tdocGlow)"
-      />
-      <path
-        d="M 42 21 L 44 14 M 42 21 L 35 19"
-        stroke="url(#tdocGrad1)"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+      {/* Smooth Modern Squircle Container */}
+      <rect
+        x="2"
+        y="2"
+        width="36"
+        height="36"
+        rx="10"
+        fill="url(#cleanUbahPdf)"
       />
 
+      {/* Clean Minimalist Document Outline */}
       <path
-        d="M 24 43 A 19 19 0 0 1 6 27"
-        stroke="url(#tdocGrad1)"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-        filter="url(#tdocGlow)"
-      />
-      <path
-        d="M 6 27 L 4 34 M 6 27 L 13 29"
-        stroke="url(#tdocGrad1)"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-
-      {/* Bold Stylized 'T' Symbol */}
-      <path
-        d="M 19 20 H 29 M 24 20 V 31"
+        d="M 13 11 H 21 L 27 17 V 29 C 27 30.1 26.1 31 25 31 H 13 C 11.9 31 11 30.1 11 29 V 13 C 11 11.9 11.9 11 13 11 Z"
+        fill="#ffffff"
+        fillOpacity="0.18"
         stroke="#ffffff"
-        strokeWidth="3.5"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      {/* Folded Corner */}
+      <path
+        d="M 21 11 V 17 H 27"
+        stroke="#ffffff"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      {/* Bold Minimal 'U' Emblem */}
+      <path
+        d="M 16 20 V 24 C 16 25.7 17.3 27 19 27 C 20.7 27 22 25.7 22 24 V 20"
+        stroke="#ffffff"
+        strokeWidth="2.4"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
