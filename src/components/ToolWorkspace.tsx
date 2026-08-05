@@ -46,6 +46,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
   const [thumbnails, setThumbnails] = useState<PdfPageThumbnail[]>([]);
   const [pageRotations, setPageRotations] = useState<Map<number, number>>(new Map());
   const [isLoadingThumbnails, setIsLoadingThumbnails] = useState<boolean>(false);
+  const [signStep, setSignStep] = useState<'create' | 'place'>('create');
 
   // Conversion Options State
   const [options, setOptions] = useState<ConversionOptions>({
@@ -441,6 +442,54 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
                 </button>
               </div>
             </div>
+          ) : tool.id === 'sign-pdf' && signStep === 'place' && options.signatureDataUrl && thumbnails.length > 0 ? (
+            /* Dedicated Full-Screen Signature Drag Editor (Step 2) */
+            <div className="space-y-4 animate-fadeIn">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 bg-emerald-50 rounded-2xl border border-emerald-200">
+                <button
+                  type="button"
+                  onClick={() => setSignStep('create')}
+                  className="px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold text-xs transition-colors shrink-0"
+                >
+                  ← Ganti / Edit Tanda Tangan
+                </button>
+
+                <div className="flex items-center gap-3 text-xs">
+                  <label className="text-slate-800 font-bold shrink-0">
+                    Tempel pada Halaman Ke-:
+                  </label>
+                  <select
+                    value={options.signaturePage || 1}
+                    onChange={(e) =>
+                      setOptions({ ...options, signaturePage: parseInt(e.target.value) })
+                    }
+                    className="p-2 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-emerald-500 font-bold"
+                  >
+                    {thumbnails.map((t) => (
+                      <option key={t.pageNumber} value={t.pageNumber}>
+                        Halaman {t.pageNumber}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <PdfSignatureOverlay
+                thumbnail={
+                  thumbnails.find((t) => t.pageNumber === (options.signaturePage || 1)) ||
+                  thumbnails[0]
+                }
+                signatureDataUrl={options.signatureDataUrl}
+                onPositionChange={(pos) =>
+                  setOptions((prev) => ({
+                    ...prev,
+                    signatureXPercent: pos.xPercent,
+                    signatureYPercent: pos.yPercent,
+                    signatureWidthPercent: pos.widthPercent,
+                  }))
+                }
+              />
+            </div>
           ) : (
             <>
               {/* File Upload Box */}
@@ -797,44 +846,14 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
                         savedDataUrl={options.signatureDataUrl}
                       />
 
-                      {options.signatureDataUrl && thumbnails.length > 0 && (
-                        <div className="space-y-4 pt-3 border-t border-slate-200">
-                          <div className="flex items-center gap-3">
-                            <label className="text-slate-700 font-semibold shrink-0">
-                              Tempel pada Halaman Ke-:
-                            </label>
-                            <select
-                              value={options.signaturePage || 1}
-                              onChange={(e) =>
-                                setOptions({ ...options, signaturePage: parseInt(e.target.value) })
-                              }
-                              className="p-2 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-emerald-500 font-semibold"
-                            >
-                              {thumbnails.map((t) => (
-                                <option key={t.pageNumber} value={t.pageNumber}>
-                                  Halaman {t.pageNumber}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <PdfSignatureOverlay
-                            thumbnail={
-                              thumbnails.find(
-                                (t) => t.pageNumber === (options.signaturePage || 1)
-                              ) || thumbnails[0]
-                            }
-                            signatureDataUrl={options.signatureDataUrl}
-                            onPositionChange={(pos) =>
-                              setOptions((prev) => ({
-                                ...prev,
-                                signatureXPercent: pos.xPercent,
-                                signatureYPercent: pos.yPercent,
-                                signatureWidthPercent: pos.widthPercent,
-                              }))
-                            }
-                          />
-                        </div>
+                      {options.signatureDataUrl && files.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setSignStep('place')}
+                          className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all transform hover:-translate-y-0.5"
+                        >
+                          <span>Lanjut Geser Posisi Tanda Tangan di PDF ➔</span>
+                        </button>
                       )}
                     </div>
                   )}
