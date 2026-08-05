@@ -356,23 +356,28 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
       <div className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-3xl overflow-hidden border border-slate-200 flex flex-col shadow-2xl">
         {/* Workspace Top Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
-          <div className="flex items-center gap-3">
+        <div className="px-4 sm:px-6 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80 gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center font-bold shadow-2xs"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-bold shadow-2xs shrink-0"
               style={{ backgroundColor: `${tool.color}15`, color: tool.color }}
             >
-              <ToolHeaderIcon className="w-5 h-5" />
+              <ToolHeaderIcon className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-slate-900 font-['Outfit']">{tool.name}</h2>
-              <p className="text-xs text-slate-500">{tool.description}</p>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 font-['Outfit'] truncate">
+                {tool.name}
+              </h2>
+              <p className="text-[11px] sm:text-xs text-slate-500 truncate sm:whitespace-normal">
+                {tool.description}
+              </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors"
+            aria-label="Tutup"
+            className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
@@ -859,37 +864,27 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
         </div>
 
         {/* Workspace Bottom Action Footer */}
-        <div className="px-4 sm:px-6 py-4 border-t border-slate-100 bg-slate-50/80 flex items-center justify-between gap-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-900 hover:bg-slate-200/60 transition-colors shrink-0"
-          >
-            {status === 'success' ? 'Selesai & Kembali' : 'Batal'}
-          </button>
+        <div className="px-4 sm:px-6 py-3.5 border-t border-slate-100 bg-slate-50/80 flex items-center justify-between gap-3">
+          {status === 'success' ? (
+            <button
+              onClick={onClose}
+              className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors border border-slate-200 text-center"
+            >
+              Selesai & Kembali ke Beranda
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-900 hover:bg-slate-200/60 transition-colors shrink-0"
+              >
+                Batal
+              </button>
 
-          <div className="flex items-center gap-3">
-            {status === 'success' ? (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleClearAll}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-colors border border-slate-200"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  <span>Konversi Lain</span>
-                </button>
-                <button
-                  onClick={handleDownload}
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center gap-2 shadow-md shadow-emerald-600/20 transition-all shrink-0"
-                >
-                  <Download className="w-4 h-4 shrink-0" />
-                  <span>Unduh File PDF</span>
-                </button>
-              </div>
-            ) : (
               <button
                 disabled={files.length === 0 || status === 'processing'}
                 onClick={handleStartConversion}
-                className={`px-6 py-2.5 rounded-xl text-xs font-extrabold text-white flex items-center gap-2 transition-all shadow-md ${
+                className={`px-5 sm:px-6 py-2.5 rounded-xl text-xs font-extrabold text-white flex items-center gap-2 transition-all shadow-md ${
                   files.length === 0 || status === 'processing'
                     ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                     : 'bg-gradient-to-r from-rose-500 to-indigo-600 hover:opacity-95 shadow-rose-500/20'
@@ -907,8 +902,8 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
                   </>
                 )}
               </button>
-            )}
-          </div>
+            </>
+          )}
         </div>
       </div>
     </div>
