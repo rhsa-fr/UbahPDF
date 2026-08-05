@@ -173,7 +173,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
         const mergedBytes = await mergePdfs(files.map((f) => f.file));
         setResultData({
           data: mergedBytes,
-          filename: 'Tdoc_Merged.pdf',
+          filename: 'UbahPDF_Merged.pdf',
           type: 'single',
         });
       } else if (tool.id === 'compress-pdf') {
@@ -181,7 +181,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
         const res = await compressPdf(files[0].file, options);
         setResultData({
           data: res.pdfBytes,
-          filename: `Tdoc_Compressed_${files[0].name}`,
+          filename: `UbahPDF_Compressed_${files[0].name}`,
           type: 'single',
           meta: {
             originalSize: res.originalSize,
@@ -193,7 +193,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
         const resBytes = await addPageNumbers(files[0].file, options);
         setResultData({
           data: resBytes,
-          filename: `Tdoc_Numbered_${files[0].name}`,
+          filename: `UbahPDF_Numbered_${files[0].name}`,
           type: 'single',
         });
       } else if (tool.id === 'split-pdf') {
@@ -212,7 +212,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
         const splitBytes = await splitPdf(files[0].file, pagesToKeep);
         setResultData({
           data: splitBytes,
-          filename: `Tdoc_Split_${files[0].name}`,
+          filename: `UbahPDF_Split_${files[0].name}`,
           type: 'single',
         });
       } else if (tool.id === 'image-to-pdf') {
@@ -223,7 +223,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
         );
         setResultData({
           data: pdfBytes,
-          filename: 'Tdoc_Converted.pdf',
+          filename: 'UbahPDF_Converted.pdf',
           type: 'single',
         });
       } else if (tool.id === 'pdf-to-image') {
@@ -256,7 +256,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
         const rotatedBytes = await rotatePdfPages(files[0].file, pageRotations);
         setResultData({
           data: rotatedBytes,
-          filename: `Tdoc_Rotated_${files[0].name}`,
+          filename: `UbahPDF_Rotated_${files[0].name}`,
           type: 'single',
         });
       } else if (tool.id === 'watermark-pdf') {
@@ -270,7 +270,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
         );
         setResultData({
           data: watermarkedBytes,
-          filename: `Tdoc_Watermarked_${files[0].name}`,
+          filename: `UbahPDF_Watermarked_${files[0].name}`,
           type: 'single',
         });
       } else if (tool.id === 'reorder-pdf') {
@@ -279,7 +279,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
         const reorderedBytes = await reorderPdfPages(files[0].file, newOrder);
         setResultData({
           data: reorderedBytes,
-          filename: `Tdoc_Reordered_${files[0].name}`,
+          filename: `UbahPDF_Reordered_${files[0].name}`,
           type: 'single',
         });
       }

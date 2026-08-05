@@ -11,10 +11,10 @@ export const Footer: React.FC = () => {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-rose-500 to-indigo-600 flex items-center justify-center text-white">
                 <FileText className="w-4 h-4" />
               </div>
-              <span className="font-bold text-lg text-white font-['Outfit']">Tdoc</span>
+              <span className="font-bold text-lg text-white font-['Outfit']">UbahPDF</span>
             </div>
             <p className="text-slate-400 text-xs leading-relaxed max-w-sm">
-              Platform konversi dokumen gratis serbaguna dengan teknologi pemrosesan client-side WebAssembly untuk privasi maksimal file Anda.
+              Platform konversi dokumen PDF gratis serbaguna dengan teknologi pemrosesan client-side WebAssembly untuk privasi maksimal file Anda.
             </p>
           </div>
 
@@ -40,7 +40,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 text-[11px]">
-          <p>© {new Date().getFullYear()} Tdoc. Dibuat dengan presisi tinggi.</p>
+          <p>© {new Date().getFullYear()} UbahPDF. Dibuat dengan presisi tinggi.</p>
           <div className="flex items-center gap-1">
             <span>Dibuat dengan</span>
             <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 inline" />

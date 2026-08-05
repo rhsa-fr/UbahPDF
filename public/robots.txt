@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://tdoc.sadev.my.id/sitemap.xml
+Sitemap: https://ubahpdf.sadev.my.id/sitemap.xml

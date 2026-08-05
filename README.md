@@ -1,8 +1,8 @@
 <div align="center">
 
-  <img src="public/logo.svg" width="100" alt="Tdoc Logo" style="margin-bottom: 12px;" />
+  <img src="public/logo.svg" width="100" alt="UbahPDF Logo" style="margin-bottom: 12px;" />
 
-  # Tdoc - All-in-One Client-Side Document Converter
+  # UbahPDF - All-in-One Client-Side Document Converter
 
   **Platform Konversi & Editor Dokumen Serbaguna Cepat, Gratis, dan 100% Privasi Terjamin.**
 
@@ -16,9 +16,9 @@
 
 ---
 
-## 🌟 Tentang Tdoc
+## 🌟 Tentang UbahPDF
 
-**Tdoc** adalah platform web konversi dan pengolahan dokumen modern yang terinspirasi dari iLovePDF. Dibangun menggunakan **React 19**, **TypeScript**, dan **WebAssembly/V8 Engine**, seluruh pemrosesan dokumen dilakukan secara **100% Client-Side** di dalam browser pengguna. Dokumen Anda tidak pernah diunggah ke server mana pun, menjamin privasi dan keamanan data tingkat tinggi.
+**UbahPDF** adalah platform web konversi dan pengolahan dokumen modern yang terinspirasi dari iLovePDF. Dibangun menggunakan **React 19**, **TypeScript**, dan **WebAssembly/V8 Engine**, seluruh pemrosesan dokumen dilakukan secara **100% Client-Side** di dalam browser pengguna. Dokumen Anda tidak pernah diunggah ke server mana pun, menjamin privasi dan keamanan data tingkat tinggi.
 
 ---
 
