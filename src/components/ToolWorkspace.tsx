@@ -9,9 +9,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Settings,
-  Upload,
-  Image as ImageIcon,
-  FileText,
+  RefreshCw,
 } from 'lucide-react';
 import { FileDropzone } from './FileDropzone';
 import { PageReorderGrid } from './PageReorderGrid';
@@ -382,498 +380,481 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
 
         {/* Scrollable Body Content */}
         <div className="p-6 overflow-y-auto flex-1 space-y-6">
-          {/* File Upload Box */}
-          <FileDropzone
-            tool={tool}
-            files={files}
-            onFilesAdded={handleFilesAdded}
-            onRemoveFile={handleRemoveFile}
-            onClearAll={handleClearAll}
-          />
-
-          {/* Thumbnail Preview & Visual Page Tools */}
-          {isLoadingThumbnails && (
-            <div className="flex items-center justify-center py-8 gap-3 text-slate-400 text-xs">
-              <Loader2 className="w-5 h-5 animate-spin text-rose-400" />
-              <span>Membuat pratinjau halaman PDF...</span>
-            </div>
-          )}
-
-          {thumbnails.length > 0 && !isLoadingThumbnails && (
-            <PageReorderGrid
-              thumbnails={thumbnails}
-              onTogglePageSelect={handleTogglePageSelect}
-              onRotatePage={tool.id === 'rotate-pdf' ? handleRotatePage : undefined}
-              onMovePage={tool.id === 'reorder-pdf' ? handleMovePage : undefined}
-              mode={
-                tool.id === 'split-pdf' || tool.id === 'delete-pages'
-                  ? 'split'
-                  : tool.id === 'rotate-pdf'
-                  ? 'rotate'
-                  : 'reorder'
-              }
-            />
-          )}
-
-          {/* Options Panel for Tools */}
-          {files.length > 0 && (
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-4">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
-                <Settings className="w-4 h-4 text-rose-500" />
-                <span>Pengaturan Konversi</span>
+          {status === 'success' ? (
+            /* Dedicated Success Screen View */
+            <div className="py-10 px-4 text-center flex flex-col items-center justify-center space-y-6 animate-fadeIn">
+              <div className="w-20 h-20 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center shadow-lg shadow-emerald-500/10">
+                <CheckCircle2 className="w-10 h-10" />
               </div>
 
-              {tool.id === 'compress-pdf' && (
-                <div className="space-y-3 text-xs">
-                  <label className="block text-slate-600 font-medium">Tingkat Kompresi</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {[
-                      {
-                        id: 'recommended',
-                        title: 'Direkomendasikan',
-                        desc: 'Kualitas teks & gambar tetap bagus, ukuran mengecil signifikan.',
-                        badge: 'Paling Seimbang',
-                      },
-                      {
-                        id: 'extreme',
-                        title: 'Kompresi Ekstrim',
-                        desc: 'Ukuran file sekecil mungkin untuk email/upload terbatas.',
-                        badge: 'Ukuran Terkecil',
-                      },
-                      {
-                        id: 'low',
-                        title: 'Kompresi Rendah',
-                        desc: 'Pengurangan ukuran ringan dengan kualitas gambar maksimal.',
-                        badge: 'Kualitas Tinggi',
-                      },
-                    ].map((lvl) => (
-                      <button
-                        key={lvl.id}
-                        type="button"
-                        onClick={() =>
-                          setOptions({ ...options, compressLevel: lvl.id as any })
-                        }
-                        className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all ${
-                          options.compressLevel === lvl.id
-                            ? 'border-rose-500 bg-rose-50 shadow-sm'
-                            : 'border-slate-200 bg-white hover:bg-slate-100/60 text-slate-600'
-                        }`}
-                      >
-                        <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-bold text-slate-900">{lvl.title}</span>
-                          </div>
-                          <p className="text-[11px] text-slate-500 leading-relaxed mb-2">
-                            {lvl.desc}
-                          </p>
-                        </div>
-                        <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider">
-                          {lvl.badge}
-                        </span>
-                      </button>
-                    ))}
+              <div className="space-y-2 max-w-md mx-auto">
+                <h3 className="text-2xl font-extrabold text-slate-900 font-['Outfit']">
+                  Dokumen Berhasil Diproses!
+                </h3>
+                {resultData?.filename && (
+                  <p className="text-xs text-slate-600 font-mono bg-slate-100 px-3.5 py-2 rounded-xl inline-block border border-slate-200 truncate max-w-xs sm:max-w-md">
+                    {resultData.filename}
+                  </p>
+                )}
+                {resultData?.meta && (
+                  <div className="mt-3 text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-4 py-2.5 rounded-xl inline-block">
+                    🎉 Ukuran berkurang{' '}
+                    <span className="font-extrabold text-emerald-950">
+                      {Math.max(
+                        0,
+                        Math.round(
+                          ((resultData.meta.originalSize - resultData.meta.compressedSize) /
+                            resultData.meta.originalSize) *
+                            100
+                        )
+                      )}
+                      %
+                    </span>{' '}
+                    ({formatBytes(resultData.meta.originalSize)} ➔{' '}
+                    {formatBytes(resultData.meta.compressedSize)})
                   </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-center gap-3 pt-4 w-full max-w-md justify-center">
+                <button
+                  onClick={handleDownload}
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm flex items-center justify-center gap-2 shadow-xl shadow-emerald-600/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+                >
+                  <Download className="w-5 h-5" />
+                  <span>Unduh File PDF</span>
+                </button>
+
+                <button
+                  onClick={handleClearAll}
+                  className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition-colors border border-slate-200"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span>Konversi File Lain</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* File Upload Box */}
+              <FileDropzone
+                tool={tool}
+                files={files}
+                onFilesAdded={handleFilesAdded}
+                onRemoveFile={handleRemoveFile}
+                onClearAll={handleClearAll}
+              />
+
+              {/* Thumbnail Preview & Visual Page Tools */}
+              {isLoadingThumbnails && (
+                <div className="flex items-center justify-center py-8 gap-3 text-slate-400 text-xs">
+                  <Loader2 className="w-5 h-5 animate-spin text-rose-400" />
+                  <span>Membuat pratinjau halaman PDF...</span>
                 </div>
               )}
 
-              {tool.id === 'page-numbers' && (
-                <div className="space-y-4 text-xs">
-                  {/* Format Penomoran */}
-                  <div>
-                    <label className="block text-slate-400 mb-1 font-medium">Format Penomoran</label>
-                    <select
-                      value={options.pageNumberFormat}
-                      onChange={(e: any) =>
-                        setOptions({ ...options, pageNumberFormat: e.target.value })
-                      }
-                      className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-rose-500 font-semibold"
-                    >
-                      <option value="arabic">Angka Arab (1, 2, 3, 4...)</option>
-                      <option value="roman-lower">Romawi Kecil (i, ii, iii, iv, v...) — Untuk Kata Pengantar & Skripsi</option>
-                      <option value="roman-upper">Romawi Besar (I, II, III, IV, V...)</option>
-                    </select>
-                  </div>
-
-                  {/* Gaya Teks & Posisi */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-slate-400 mb-1 font-medium">Gaya Teks</label>
-                      <select
-                        value={options.pageNumberStyle}
-                        onChange={(e: any) =>
-                          setOptions({ ...options, pageNumberStyle: e.target.value })
-                        }
-                        className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-rose-500"
-                      >
-                        <option value="page-x-of-y">Halaman X dari Y (contoh: Halaman 1 dari 10)</option>
-                        <option value="page-x">Halaman X (contoh: Halaman 1)</option>
-                        <option value="number-only">Hanya Angka (contoh: 1)</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-slate-400 mb-1 font-medium">Posisi Nomor</label>
-                      <select
-                        value={options.pageNumberPosition}
-                        onChange={(e: any) =>
-                          setOptions({ ...options, pageNumberPosition: e.target.value })
-                        }
-                        className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-rose-500"
-                      >
-                        <option value="bottom-right">Bawah Kanan (Standard)</option>
-                        <option value="bottom-center">Bawah Tengah</option>
-                        <option value="bottom-left">Bawah Kiri</option>
-                        <option value="top-right">Atas Kanan</option>
-                        <option value="top-center">Atas Tengah</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Opsi Cover Page Checkbox */}
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-950 border border-slate-800">
-                    <input
-                      type="checkbox"
-                      id="skipCover"
-                      checked={options.pageNumberSkipCover}
-                      onChange={(e) =>
-                        setOptions({ ...options, pageNumberSkipCover: e.target.checked })
-                      }
-                      className="w-4 h-4 accent-rose-500 rounded cursor-pointer"
-                    />
-                    <label htmlFor="skipCover" className="text-slate-300 font-medium cursor-pointer select-none">
-                      Lewati Halaman Pertama (Halaman Sampul / Cover)
-                    </label>
-                  </div>
-                </div>
+              {thumbnails.length > 0 && !isLoadingThumbnails && (
+                <PageReorderGrid
+                  thumbnails={thumbnails}
+                  onTogglePageSelect={handleTogglePageSelect}
+                  onRotatePage={tool.id === 'rotate-pdf' ? handleRotatePage : undefined}
+                  onMovePage={tool.id === 'reorder-pdf' ? handleMovePage : undefined}
+                  mode={
+                    tool.id === 'split-pdf' || tool.id === 'delete-pages'
+                      ? 'split'
+                      : tool.id === 'rotate-pdf'
+                      ? 'rotate'
+                      : 'reorder'
+                  }
+                />
               )}
 
-              {tool.id === 'image-to-pdf' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div>
-                    <label className="block text-slate-400 mb-1">Orientasi Halaman</label>
-                    <select
-                      value={options.orientation}
-                      onChange={(e: any) =>
-                        setOptions({ ...options, orientation: e.target.value })
-                      }
-                      className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-rose-500"
-                    >
-                      <option value="portrait">Potret (Vertical)</option>
-                      <option value="landscape">Lansekap (Horizontal)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-slate-400 mb-1">Margin</label>
-                    <select
-                      value={options.margin}
-                      onChange={(e: any) => setOptions({ ...options, margin: e.target.value })}
-                      className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-rose-500"
-                    >
-                      <option value="none">Tanpa Margin (Full Bleed)</option>
-                      <option value="small">Margin Kecil (10mm)</option>
-                      <option value="large">Margin Besar (20mm)</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-
-              {tool.id === 'pdf-to-image' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div>
-                    <label className="block text-slate-400 mb-1">Format Gambar Output</label>
-                    <select
-                      value={options.imageFormat}
-                      onChange={(e: any) =>
-                        setOptions({ ...options, imageFormat: e.target.value })
-                      }
-                      className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-rose-500"
-                    >
-                      <option value="png">PNG (Kualitas Tinggi & Transparan)</option>
-                      <option value="jpeg">JPG / JPEG (Ukuran Kompresi)</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-
-              {tool.id === 'watermark-pdf' && (
-                <div className="space-y-4 text-xs">
-                  {/* Watermark Type Selector Tabs */}
-                  <div>
-                    <label className="block text-slate-400 mb-2 font-medium">Tipe Watermark</label>
-                    <div className="grid grid-cols-2 gap-2 p-1 bg-slate-950 rounded-xl border border-slate-800">
-                      <button
-                        type="button"
-                        onClick={() => setOptions({ ...options, watermarkType: 'text' })}
-                        className={`flex items-center justify-center gap-2 py-2 rounded-lg font-semibold transition-all ${
-                          options.watermarkType === 'text'
-                            ? 'bg-rose-500 text-white shadow-md'
-                            : 'text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        <FileText className="w-4 h-4" />
-                        <span>Teks Watermark</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setOptions({ ...options, watermarkType: 'image' })}
-                        className={`flex items-center justify-center gap-2 py-2 rounded-lg font-semibold transition-all ${
-                          options.watermarkType === 'image'
-                            ? 'bg-rose-500 text-white shadow-md'
-                            : 'text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        <ImageIcon className="w-4 h-4" />
-                        <span>Logo / Gambar</span>
-                      </button>
-                    </div>
+              {/* Options Panel for Tools */}
+              {files.length > 0 && (
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-4">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    <Settings className="w-4 h-4 text-rose-500" />
+                    <span>Pengaturan Konversi</span>
                   </div>
 
-                  {/* Options for Text Watermark */}
-                  {options.watermarkType === 'text' ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-slate-400 mb-1">Teks Watermark</label>
-                        <input
-                          type="text"
-                          value={options.watermarkText}
-                          onChange={(e) =>
-                            setOptions({ ...options, watermarkText: e.target.value })
-                          }
-                          placeholder="Contoh: CONFIDENTIAL / DRAFT / UNIVERSITAS X"
-                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-rose-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-slate-400 mb-1">Sudut Kemiringan (°)</label>
-                        <input
-                          type="number"
-                          value={options.watermarkAngle}
-                          onChange={(e) =>
-                            setOptions({
-                              ...options,
-                              watermarkAngle: parseInt(e.target.value, 10) || 0,
-                            })
-                          }
-                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-rose-500"
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    /* Options for Image/Logo Watermark */
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-slate-400 mb-1 font-medium">
-                          Upload File Logo (PNG / JPG)
-                        </label>
-                        <div className="flex items-center gap-3">
-                          <label className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-slate-950 border border-dashed border-slate-800 hover:border-rose-500 cursor-pointer transition-colors text-slate-300">
-                            <Upload className="w-4 h-4 text-rose-400" />
-                            <span className="truncate">
-                              {options.watermarkImageFile
-                                ? options.watermarkImageFile.name
-                                : 'Pilih File Logo Perusahaan / Kampus'}
+                  {tool.id === 'compress-pdf' && (
+                    <div className="space-y-3 text-xs">
+                      <label className="block text-slate-600 font-medium">Tingkat Kompresi</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {[
+                          {
+                            id: 'recommended',
+                            title: 'Direkomendasikan',
+                            desc: 'Kualitas teks & gambar tetap bagus, ukuran mengecil signifikan.',
+                            badge: 'Paling Seimbang',
+                          },
+                          {
+                            id: 'extreme',
+                            title: 'Kompresi Ekstrim',
+                            desc: 'Ukuran file sekecil mungkin untuk email/upload terbatas.',
+                            badge: 'Ukuran Terkecil',
+                          },
+                          {
+                            id: 'low',
+                            title: 'Kompresi Rendah',
+                            desc: 'Pengurangan ukuran ringan dengan kualitas gambar maksimal.',
+                            badge: 'Kualitas Tinggi',
+                          },
+                        ].map((lvl) => (
+                          <button
+                            key={lvl.id}
+                            type="button"
+                            onClick={() =>
+                              setOptions({ ...options, compressLevel: lvl.id as any })
+                            }
+                            className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all ${
+                              options.compressLevel === lvl.id
+                                ? 'border-rose-500 bg-rose-50 shadow-sm'
+                                : 'border-slate-200 bg-white hover:bg-slate-100/60 text-slate-600'
+                            }`}
+                          >
+                            <div>
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-bold text-slate-900">{lvl.title}</span>
+                              </div>
+                              <p className="text-[11px] text-slate-500 leading-relaxed mb-2">
+                                {lvl.desc}
+                              </p>
+                            </div>
+                            <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider">
+                              {lvl.badge}
                             </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {tool.id === 'page-numbers' && (
+                    <div className="space-y-4 text-xs">
+                      <div>
+                        <label className="block text-slate-400 mb-1 font-medium">Format Penomoran</label>
+                        <select
+                          value={options.pageNumberFormat}
+                          onChange={(e: any) =>
+                            setOptions({ ...options, pageNumberFormat: e.target.value })
+                          }
+                          className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500"
+                        >
+                          <option value="arabic">Angka Arab (1, 2, 3...)</option>
+                          <option value="roman-lower">Romawi Kecil (i, ii, iii...)</option>
+                          <option value="roman-upper">Romawi Besar (I, II, III...)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-400 mb-1 font-medium">Gaya Teks</label>
+                        <select
+                          value={options.pageNumberStyle}
+                          onChange={(e: any) =>
+                            setOptions({ ...options, pageNumberStyle: e.target.value })
+                          }
+                          className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500"
+                        >
+                          <option value="number-only">Angka saja (misal: 1)</option>
+                          <option value="page-x">Halaman X (misal: Halaman 1)</option>
+                          <option value="page-x-of-y">Halaman X dari Y (misal: Halaman 1 dari 10)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-400 mb-1 font-medium">Posisi Letak Nomor</label>
+                        <select
+                          value={options.pageNumberPosition}
+                          onChange={(e: any) =>
+                            setOptions({ ...options, pageNumberPosition: e.target.value })
+                          }
+                          className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500"
+                        >
+                          <option value="bottom-right">Bawah Kanan (Standar Buku/Skripsi)</option>
+                          <option value="bottom-center">Bawah Tengah (Standar Makalah)</option>
+                          <option value="bottom-left">Bawah Kiri</option>
+                          <option value="top-right">Atas Kanan</option>
+                          <option value="top-center">Atas Tengah</option>
+                        </select>
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-1">
+                        <input
+                          type="checkbox"
+                          id="skipCover"
+                          checked={options.pageNumberSkipCover}
+                          onChange={(e) =>
+                            setOptions({ ...options, pageNumberSkipCover: e.target.checked })
+                          }
+                          className="rounded border-slate-300 text-rose-500 focus:ring-rose-500"
+                        />
+                        <label htmlFor="skipCover" className="text-slate-600 font-medium cursor-pointer">
+                          Lewati Halaman Sampul/Cover (Jangan beri nomor di Halaman 1)
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {tool.id === 'pdf-to-image' && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <label className="block text-slate-400 mb-1">Format Gambar Output</label>
+                        <select
+                          value={options.imageFormat}
+                          onChange={(e: any) =>
+                            setOptions({ ...options, imageFormat: e.target.value })
+                          }
+                          className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500"
+                        >
+                          <option value="png">PNG (Kualitas Terbaik & Jernih)</option>
+                          <option value="jpeg">JPG / JPEG (Ukuran Lebih Ringan)</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+
+                  {tool.id === 'image-to-pdf' && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                      <div>
+                        <label className="block text-slate-400 mb-1">Ukuran Halaman</label>
+                        <select
+                          value={options.pageSize}
+                          onChange={(e: any) =>
+                            setOptions({ ...options, pageSize: e.target.value })
+                          }
+                          className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500"
+                        >
+                          <option value="a4">Standar A4</option>
+                          <option value="letter">Letter</option>
+                          <option value="fit">Sesuai Ukuran Gambar</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 mb-1">Orientasi</label>
+                        <select
+                          value={options.orientation}
+                          onChange={(e: any) =>
+                            setOptions({ ...options, orientation: e.target.value })
+                          }
+                          className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500"
+                        >
+                          <option value="portrait">Tegak (Portrait)</option>
+                          <option value="landscape">Mendatar (Landscape)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 mb-1">Margin Pinggir</label>
+                        <select
+                          value={options.margin}
+                          onChange={(e: any) =>
+                            setOptions({ ...options, margin: e.target.value })
+                          }
+                          className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500"
+                        >
+                          <option value="none">Tanpa Margin (Penuh)</option>
+                          <option value="small">Margin Kecil</option>
+                          <option value="large">Margin Besar</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+
+                  {tool.id === 'watermark-pdf' && (
+                    <div className="space-y-4 text-xs">
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 text-slate-600 font-medium cursor-pointer">
+                          <input
+                            type="radio"
+                            name="wmType"
+                            checked={options.watermarkType === 'text'}
+                            onChange={() => setOptions({ ...options, watermarkType: 'text' })}
+                            className="text-rose-500 focus:ring-rose-500"
+                          />
+                          <span>Watermark Teks</span>
+                        </label>
+                        <label className="flex items-center gap-2 text-slate-600 font-medium cursor-pointer">
+                          <input
+                            type="radio"
+                            name="wmType"
+                            checked={options.watermarkType === 'image'}
+                            onChange={() => setOptions({ ...options, watermarkType: 'image' })}
+                            className="text-rose-500 focus:ring-rose-500"
+                          />
+                          <span>Watermark Logo / Gambar</span>
+                        </label>
+                      </div>
+
+                      {options.watermarkType === 'text' ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-slate-400 mb-1">Teks Watermark</label>
                             <input
-                              type="file"
-                              accept="image/png,image/jpeg,.png,.jpg,.jpeg"
-                              onChange={(e) => {
-                                if (e.target.files && e.target.files.length > 0) {
-                                  setOptions({
-                                    ...options,
-                                    watermarkImageFile: e.target.files[0],
-                                  });
-                                }
-                              }}
-                              className="hidden"
+                              type="text"
+                              value={options.watermarkText}
+                              onChange={(e) => setOptions({ ...options, watermarkText: e.target.value })}
+                              placeholder="misal: RAHASIA / DRAFT"
+                              className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500"
                             />
-                          </label>
+                          </div>
+                          <div>
+                            <label className="block text-slate-400 mb-1">Ukuran Font ({options.watermarkFontSize}px)</label>
+                            <input
+                              type="range"
+                              min="12"
+                              max="120"
+                              value={options.watermarkFontSize}
+                              onChange={(e) => setOptions({ ...options, watermarkFontSize: parseInt(e.target.value) })}
+                              className="w-full accent-rose-500 cursor-pointer"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <label className="block text-slate-400 font-medium">Upload File Logo Watermark (PNG/JPG)</label>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files[0]) {
+                                setOptions({ ...options, watermarkImageFile: e.target.files[0] });
+                              }
+                            }}
+                            className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-rose-50 file:text-rose-600 hover:file:bg-rose-100"
+                          />
 
                           {options.watermarkImageFile && (
-                            <button
-                              type="button"
-                              onClick={() => setOptions({ ...options, watermarkImageFile: null })}
-                              className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-rose-400 hover:text-rose-300 font-semibold"
-                            >
-                              Hapus
-                            </button>
+                            <p className="text-[11px] text-emerald-600 font-semibold">
+                              ✓ Logo terpilih: {options.watermarkImageFile.name}
+                            </p>
                           )}
-                        </div>
-                      </div>
 
-                      {/* Logo Width Slider & Opacity */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-slate-400 mb-1">
-                            Lebar Logo: <span className="text-white font-bold">{options.watermarkImageWidth || 160} px</span>
-                          </label>
-                          <input
-                            type="range"
-                            min="50"
-                            max="400"
-                            step="10"
-                            value={options.watermarkImageWidth || 160}
-                            onChange={(e) =>
-                              setOptions({
-                                ...options,
-                                watermarkImageWidth: parseInt(e.target.value, 10),
-                              })
-                            }
-                            className="w-full accent-rose-500 cursor-pointer"
-                          />
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                            <div>
+                              <label className="block text-slate-400 mb-1">Ukuran Lebar Logo ({options.watermarkImageWidth || 150}px)</label>
+                              <input
+                                type="range"
+                                min="40"
+                                max="400"
+                                value={options.watermarkImageWidth || 150}
+                                onChange={(e) => setOptions({ ...options, watermarkImageWidth: parseInt(e.target.value) })}
+                                className="w-full accent-rose-500 cursor-pointer"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-slate-400 mb-1">
+                                Transparansi Logo ({Math.round((options.watermarkOpacity || 0.3) * 100)}%)
+                              </label>
+                              <input
+                                type="range"
+                                min="0.1"
+                                max="1.0"
+                                step="0.05"
+                                value={options.watermarkOpacity || 0.3}
+                                onChange={(e) =>
+                                  setOptions({
+                                    ...options,
+                                    watermarkOpacity: parseFloat(e.target.value),
+                                  })
+                                }
+                                className="w-full accent-rose-500 cursor-pointer"
+                              />
+                            </div>
+                          </div>
                         </div>
-
-                        <div>
-                          <label className="block text-slate-400 mb-1">
-                            Transparansi (*Opacity*): <span className="text-white font-bold">{Math.round((options.watermarkOpacity || 0.3) * 100)}%</span>
-                          </label>
-                          <input
-                            type="range"
-                            min="0.1"
-                            max="1.0"
-                            step="0.05"
-                            value={options.watermarkOpacity || 0.3}
-                            onChange={(e) =>
-                              setOptions({
-                                ...options,
-                                watermarkOpacity: parseFloat(e.target.value),
-                              })
-                            }
-                            className="w-full accent-rose-500 cursor-pointer"
-                          />
-                        </div>
-                      </div>
+                      )}
                     </div>
                   )}
-                </div>
-              )}
 
-              {tool.id === 'split-pdf' && (
-                <div className="text-xs">
-                  <label className="block text-slate-600 mb-1 font-medium">
-                    Rentang Halaman Kustom (Opsional, misal: 1-3, 5, 8-10)
-                  </label>
-                  <input
-                    type="text"
-                    value={options.splitRange}
-                    onChange={(e) => setOptions({ ...options, splitRange: e.target.value })}
-                    placeholder="Kosongkan untuk menggunakan hasil klik pratinjau di atas"
-                    className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500"
-                  />
-                </div>
-              )}
-
-              {tool.id === 'sign-pdf' && (
-                <div className="space-y-4 text-xs">
-                  <SignatureCanvas
-                    onSaveSignature={(dataUrl) =>
-                      setOptions({ ...options, signatureDataUrl: dataUrl })
-                    }
-                    savedDataUrl={options.signatureDataUrl}
-                  />
-
-                  {thumbnails.length > 0 && (
-                    <div className="flex items-center gap-3">
-                      <label className="text-slate-700 font-semibold shrink-0">
-                        Tempel pada Halaman Ke-:
+                  {tool.id === 'split-pdf' && (
+                    <div className="text-xs">
+                      <label className="block text-slate-600 mb-1 font-medium">
+                        Rentang Halaman Kustom (Opsional, misal: 1-3, 5, 8-10)
                       </label>
-                      <select
-                        value={options.signaturePage || 1}
-                        onChange={(e) =>
-                          setOptions({ ...options, signaturePage: parseInt(e.target.value) })
+                      <input
+                        type="text"
+                        value={options.splitRange}
+                        onChange={(e) => setOptions({ ...options, splitRange: e.target.value })}
+                        placeholder="Kosongkan untuk menggunakan hasil klik pratinjau di atas"
+                        className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500"
+                      />
+                    </div>
+                  )}
+
+                  {tool.id === 'sign-pdf' && (
+                    <div className="space-y-4 text-xs">
+                      <SignatureCanvas
+                        onSaveSignature={(dataUrl) =>
+                          setOptions({ ...options, signatureDataUrl: dataUrl })
                         }
-                        className="p-2 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-emerald-500 font-semibold"
-                      >
-                        {thumbnails.map((t) => (
-                          <option key={t.pageNumber} value={t.pageNumber}>
-                            Halaman {t.pageNumber}
-                          </option>
-                        ))}
-                      </select>
+                        savedDataUrl={options.signatureDataUrl}
+                      />
+
+                      {thumbnails.length > 0 && (
+                        <div className="flex items-center gap-3">
+                          <label className="text-slate-700 font-semibold shrink-0">
+                            Tempel pada Halaman Ke-:
+                          </label>
+                          <select
+                            value={options.signaturePage || 1}
+                            onChange={(e) =>
+                              setOptions({ ...options, signaturePage: parseInt(e.target.value) })
+                            }
+                            className="p-2 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-emerald-500 font-semibold"
+                          >
+                            {thumbnails.map((t) => (
+                              <option key={t.pageNumber} value={t.pageNumber}>
+                                Halaman {t.pageNumber}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {tool.id === 'delete-pages' && (
+                    <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+                      💡 Klik pada thumbnail halaman di atas yang ingin Anda HAPUS. Halaman yang terpilih akan ditandai.
+                    </div>
+                  )}
+
+                  {tool.id === 'protect-pdf' && (
+                    <div className="space-y-3 text-xs">
+                      <label className="block text-slate-700 font-bold">
+                        Masukkan Kata Sandi (Password) Pengunci PDF
+                      </label>
+                      <input
+                        type="password"
+                        value={options.userPassword || ''}
+                        onChange={(e) => setOptions({ ...options, userPassword: e.target.value })}
+                        placeholder="Ketik password untuk mengunci file..."
+                        className="w-full p-3 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-purple-500 font-medium"
+                      />
+                      <p className="text-[11px] text-slate-500">
+                        File PDF hasil unduhan akan meminta password ini setiap kali dibuka di aplikasi pembaca PDF.
+                      </p>
                     </div>
                   )}
                 </div>
               )}
 
-              {tool.id === 'delete-pages' && (
-                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
-                  💡 Klik pada thumbnail halaman di atas yang ingin Anda HAPUS. Halaman yang terpilih akan ditandai.
+              {/* Status Feedback for Processing & Error */}
+              {status === 'processing' && (
+                <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-700 text-xs flex items-center justify-center gap-3">
+                  <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                  <span className="font-semibold">{progressText}</span>
                 </div>
               )}
 
-              {tool.id === 'protect-pdf' && (
-                <div className="space-y-3 text-xs">
-                  <label className="block text-slate-700 font-bold">
-                    Masukkan Kata Sandi (Password) Pengunci PDF
-                  </label>
-                  <input
-                    type="password"
-                    value={options.userPassword || ''}
-                    onChange={(e) => setOptions({ ...options, userPassword: e.target.value })}
-                    placeholder="Ketik password untuk mengunci file..."
-                    className="w-full p-3 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-purple-500 font-medium"
-                  />
-                  <p className="text-[11px] text-slate-500">
-                    File PDF hasil unduhan akan meminta password ini setiap kali dibuka di aplikasi pembaca PDF.
-                  </p>
+              {status === 'error' && (
+                <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-3">
+                  <AlertTriangle className="w-5 h-5 shrink-0 text-rose-600" />
+                  <span>{errorMsg}</span>
                 </div>
               )}
-            </div>
-          )}
-
-          {/* Status Feedback */}
-          {status === 'processing' && (
-            <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-700 text-xs flex items-center justify-center gap-3">
-              <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-              <span className="font-semibold">{progressText}</span>
-            </div>
-          )}
-
-          {status === 'error' && (
-            <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 shrink-0 text-rose-600" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
-
-          {status === 'success' && (
-            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2 min-w-0">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                <div className="min-w-0">
-                  <span className="font-semibold block">Dokumen berhasil dikonversi!</span>
-                  {resultData?.filename && (
-                    <span className="text-[11px] text-slate-600 truncate max-w-[200px] sm:max-w-[350px] block font-mono">
-                      {resultData.filename}
-                    </span>
-                  )}
-                  {resultData?.meta && (
-                    <span className="text-[11px] text-emerald-700 block">
-                      Ukuran berkurang{' '}
-                      <span className="font-bold text-emerald-900">
-                        {Math.max(
-                          0,
-                          Math.round(
-                            ((resultData.meta.originalSize - resultData.meta.compressedSize) /
-                              resultData.meta.originalSize) *
-                              100
-                          )
-                        )}
-                        %
-                      </span>{' '}
-                      ({formatBytes(resultData.meta.originalSize)} ➔{' '}
-                      {formatBytes(resultData.meta.compressedSize)})
-                    </span>
-                  )}
-                </div>
-              </div>
-              <button
-                onClick={handleDownload}
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition-all shrink-0 w-full sm:w-auto"
-              >
-                <Download className="w-4 h-4 shrink-0" />
-                <span>Unduh Hasil</span>
-              </button>
-            </div>
+            </>
           )}
         </div>
 
@@ -883,18 +864,27 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
             onClick={onClose}
             className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-900 hover:bg-slate-200/60 transition-colors shrink-0"
           >
-            Batal
+            {status === 'success' ? 'Selesai & Kembali' : 'Batal'}
           </button>
 
           <div className="flex items-center gap-3">
             {status === 'success' ? (
-              <button
-                onClick={handleDownload}
-                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center gap-2 shadow-md shadow-emerald-600/20 transition-all shrink-0"
-              >
-                <Download className="w-4 h-4 shrink-0" />
-                <span>Unduh Hasil</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleClearAll}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-colors border border-slate-200"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span>Konversi Lain</span>
+                </button>
+                <button
+                  onClick={handleDownload}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center gap-2 shadow-md shadow-emerald-600/20 transition-all shrink-0"
+                >
+                  <Download className="w-4 h-4 shrink-0" />
+                  <span>Unduh File PDF</span>
+                </button>
+              </div>
             ) : (
               <button
                 disabled={files.length === 0 || status === 'processing'}
