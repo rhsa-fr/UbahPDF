@@ -480,7 +480,7 @@ export async function signPdf(
   }
 
   const page = pages[targetPageNum - 1];
-  const { width } = page.getSize();
+  const { width: pageWidth, height: pageHeight } = page.getSize();
 
   // Embed signature image (PNG or JPG)
   let signatureImage;
@@ -490,18 +490,37 @@ export async function signPdf(
     signatureImage = await pdfDoc.embedJpg(signatureDataUrl);
   }
 
-  const scaleFactor = options.signatureScale || 0.4;
-  const sigDims = signatureImage.scale(scaleFactor);
+  let x: number;
+  let y: number;
+  let sigWidth: number;
+  let sigHeight: number;
 
-  // Default placement: bottom right corner with margin
-  const x = Math.max(20, width - sigDims.width - 40);
-  const y = 40;
+  if (
+    options.signatureXPercent !== undefined &&
+    options.signatureYPercent !== undefined &&
+    options.signatureWidthPercent !== undefined
+  ) {
+    sigWidth = (options.signatureWidthPercent / 100) * pageWidth;
+    const aspectRatio = signatureImage.height / signatureImage.width;
+    sigHeight = sigWidth * aspectRatio;
+
+    x = (options.signatureXPercent / 100) * pageWidth;
+    const topY = (options.signatureYPercent / 100) * pageHeight;
+    y = pageHeight - topY - sigHeight;
+  } else {
+    const scaleFactor = options.signatureScale || 0.4;
+    const sigDims = signatureImage.scale(scaleFactor);
+    sigWidth = sigDims.width;
+    sigHeight = sigDims.height;
+    x = Math.max(20, pageWidth - sigWidth - 40);
+    y = 40;
+  }
 
   page.drawImage(signatureImage, {
     x,
     y,
-    width: sigDims.width,
-    height: sigDims.height,
+    width: sigWidth,
+    height: sigHeight,
   });
 
   return await pdfDoc.save();

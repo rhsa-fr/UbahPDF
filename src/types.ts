@@ -73,6 +73,9 @@ export interface ConversionOptions {
   signatureDataUrl?: string;
   signaturePage?: number;
   signatureScale?: number;
+  signatureXPercent?: number;
+  signatureYPercent?: number;
+  signatureWidthPercent?: number;
 
   // Delete pages options
   deletePagesList?: number[];

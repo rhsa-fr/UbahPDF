@@ -14,6 +14,7 @@ import {
 import { FileDropzone } from './FileDropzone';
 import { PageReorderGrid } from './PageReorderGrid';
 import { SignatureCanvas } from './SignatureCanvas';
+import { PdfSignatureOverlay } from './PdfSignatureOverlay';
 import {
   mergePdfs,
   splitPdf,
@@ -796,24 +797,43 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
                         savedDataUrl={options.signatureDataUrl}
                       />
 
-                      {thumbnails.length > 0 && (
-                        <div className="flex items-center gap-3">
-                          <label className="text-slate-700 font-semibold shrink-0">
-                            Tempel pada Halaman Ke-:
-                          </label>
-                          <select
-                            value={options.signaturePage || 1}
-                            onChange={(e) =>
-                              setOptions({ ...options, signaturePage: parseInt(e.target.value) })
+                      {options.signatureDataUrl && thumbnails.length > 0 && (
+                        <div className="space-y-4 pt-3 border-t border-slate-200">
+                          <div className="flex items-center gap-3">
+                            <label className="text-slate-700 font-semibold shrink-0">
+                              Tempel pada Halaman Ke-:
+                            </label>
+                            <select
+                              value={options.signaturePage || 1}
+                              onChange={(e) =>
+                                setOptions({ ...options, signaturePage: parseInt(e.target.value) })
+                              }
+                              className="p-2 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-emerald-500 font-semibold"
+                            >
+                              {thumbnails.map((t) => (
+                                <option key={t.pageNumber} value={t.pageNumber}>
+                                  Halaman {t.pageNumber}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <PdfSignatureOverlay
+                            thumbnail={
+                              thumbnails.find(
+                                (t) => t.pageNumber === (options.signaturePage || 1)
+                              ) || thumbnails[0]
                             }
-                            className="p-2 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-emerald-500 font-semibold"
-                          >
-                            {thumbnails.map((t) => (
-                              <option key={t.pageNumber} value={t.pageNumber}>
-                                Halaman {t.pageNumber}
-                              </option>
-                            ))}
-                          </select>
+                            signatureDataUrl={options.signatureDataUrl}
+                            onPositionChange={(pos) =>
+                              setOptions((prev) => ({
+                                ...prev,
+                                signatureXPercent: pos.xPercent,
+                                signatureYPercent: pos.yPercent,
+                                signatureWidthPercent: pos.widthPercent,
+                              }))
+                            }
+                          />
                         </div>
                       )}
                     </div>
