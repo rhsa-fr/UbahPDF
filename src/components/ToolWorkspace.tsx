@@ -743,10 +743,15 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
 
           {status === 'success' && (
             <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 min-w-0">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                <div>
+                <div className="min-w-0">
                   <span className="font-semibold block">Dokumen berhasil dikonversi!</span>
+                  {resultData?.filename && (
+                    <span className="text-[11px] text-slate-300 truncate max-w-[200px] sm:max-w-[350px] block font-mono">
+                      {resultData.filename}
+                    </span>
+                  )}
                   {resultData?.meta && (
                     <span className="text-[11px] text-emerald-300/80 block">
                       Ukuran berkurang{' '}
@@ -769,9 +774,9 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
               </div>
               <button
                 onClick={handleDownload}
-                className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition-all shrink-0"
+                className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all shrink-0 w-full sm:w-auto"
               >
-                <Download className="w-4 h-4" />
+                <Download className="w-4 h-4 shrink-0" />
                 <span>Unduh Hasil</span>
               </button>
             </div>
@@ -779,10 +784,10 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
         </div>
 
         {/* Workspace Bottom Action Footer */}
-        <div className="px-6 py-4 border-t border-slate-800 bg-slate-900/80 flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-4 border-t border-slate-800 bg-slate-900/80 flex items-center justify-between gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
           >
             Batal
           </button>
@@ -791,10 +796,10 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
             {status === 'success' ? (
               <button
                 onClick={handleDownload}
-                className="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/25 transition-all"
+                className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/25 transition-all shrink-0"
               >
-                <Download className="w-4 h-4" />
-                <span>Unduh Hasil ({resultData?.filename})</span>
+                <Download className="w-4 h-4 shrink-0" />
+                <span>Unduh Hasil</span>
               </button>
             ) : (
               <button
