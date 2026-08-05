@@ -12,7 +12,14 @@ export const Footer: React.FC = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-2.5">
               <TdocLogo size={32} />
-              <span className="font-extrabold text-xl text-slate-900 font-['Outfit']">UbahPDF</span>
+              <div className="flex items-center gap-0.5 select-none">
+                <span className="font-extrabold text-xl tracking-tight text-slate-900 font-['Outfit']">
+                  Ubah
+                </span>
+                <span className="font-black text-xl tracking-tight bg-gradient-to-r from-rose-500 via-purple-600 to-indigo-600 bg-clip-text text-transparent font-['Outfit']">
+                  PDF
+                </span>
+              </div>
             </div>
             <p className="text-slate-500 text-xs leading-relaxed max-w-sm">
               Solusi pengolahan PDF cepat, gratis, dan serbaguna di Indonesia. Diproses 100% secara lokal di browser Anda tanpa pernah menyimpan file ke server luar.

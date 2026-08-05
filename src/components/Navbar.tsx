@@ -24,9 +24,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center justify-center p-1">
             <TdocLogo size={36} />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-0.5 select-none">
             <span className="font-extrabold text-xl tracking-tight text-slate-900 font-['Outfit']">
-              UbahPDF
+              Ubah
+            </span>
+            <span className="font-black text-xl tracking-tight bg-gradient-to-r from-rose-500 via-purple-600 to-indigo-600 bg-clip-text text-transparent font-['Outfit']">
+              PDF
             </span>
           </div>
         </div>
