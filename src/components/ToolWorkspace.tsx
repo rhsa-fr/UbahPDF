@@ -317,26 +317,26 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
-      <div className="relative w-full max-w-4xl max-h-[90vh] glass-panel rounded-3xl overflow-hidden border border-slate-800 flex flex-col shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
+      <div className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-3xl overflow-hidden border border-slate-200 flex flex-col shadow-2xl">
         {/* Workspace Top Header */}
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
           <div className="flex items-center gap-3">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold"
-              style={{ backgroundColor: `${tool.color}25`, color: tool.color }}
+              className="w-10 h-10 rounded-xl flex items-center justify-center font-bold shadow-2xs"
+              style={{ backgroundColor: `${tool.color}15`, color: tool.color }}
             >
               <ToolHeaderIcon className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white font-['Outfit']">{tool.name}</h2>
-              <p className="text-xs text-slate-400">{tool.description}</p>
+              <h2 className="text-lg font-bold text-slate-900 font-['Outfit']">{tool.name}</h2>
+              <p className="text-xs text-slate-500">{tool.description}</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -379,15 +379,15 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
 
           {/* Options Panel for Tools */}
           {files.length > 0 && (
-            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-4">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-300 uppercase tracking-wider">
-                <Settings className="w-4 h-4 text-rose-400" />
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-4">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
+                <Settings className="w-4 h-4 text-rose-500" />
                 <span>Pengaturan Konversi</span>
               </div>
 
               {tool.id === 'compress-pdf' && (
                 <div className="space-y-3 text-xs">
-                  <label className="block text-slate-400 font-medium">Tingkat Kompresi</label>
+                  <label className="block text-slate-600 font-medium">Tingkat Kompresi</label>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {[
                       {
@@ -417,19 +417,19 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
                         }
                         className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all ${
                           options.compressLevel === lvl.id
-                            ? 'border-rose-500 bg-rose-500/10 shadow-md shadow-rose-500/10'
-                            : 'border-slate-800 bg-slate-950/60 hover:bg-slate-900/80 text-slate-400'
+                            ? 'border-rose-500 bg-rose-50 shadow-sm'
+                            : 'border-slate-200 bg-white hover:bg-slate-100/60 text-slate-600'
                         }`}
                       >
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <span className="font-bold text-white">{lvl.title}</span>
+                            <span className="font-bold text-slate-900">{lvl.title}</span>
                           </div>
-                          <p className="text-[11px] text-slate-400 leading-relaxed mb-2">
+                          <p className="text-[11px] text-slate-500 leading-relaxed mb-2">
                             {lvl.desc}
                           </p>
                         </div>
-                        <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider">
+                        <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider">
                           {lvl.badge}
                         </span>
                       </button>
@@ -711,7 +711,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
 
               {tool.id === 'split-pdf' && (
                 <div className="text-xs">
-                  <label className="block text-slate-400 mb-1">
+                  <label className="block text-slate-600 mb-1">
                     Rentang Halaman Kustom (Opsional, misal: 1-3, 5, 8-10)
                   </label>
                   <input
@@ -719,7 +719,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
                     value={options.splitRange}
                     onChange={(e) => setOptions({ ...options, splitRange: e.target.value })}
                     placeholder="Kosongkan untuk menggunakan hasil klik pratinjau di atas"
-                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-rose-500"
+                    className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500"
                   />
                 </div>
               )}
@@ -728,34 +728,34 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
 
           {/* Status Feedback */}
           {status === 'processing' && (
-            <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs flex items-center justify-center gap-3">
-              <Loader2 className="w-5 h-5 animate-spin" />
+            <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-700 text-xs flex items-center justify-center gap-3">
+              <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
               <span className="font-semibold">{progressText}</span>
             </div>
           )}
 
           {status === 'error' && (
-            <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 shrink-0" />
+            <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 shrink-0 text-rose-600" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {status === 'success' && (
-            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2 min-w-0">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                 <div className="min-w-0">
                   <span className="font-semibold block">Dokumen berhasil dikonversi!</span>
                   {resultData?.filename && (
-                    <span className="text-[11px] text-slate-300 truncate max-w-[200px] sm:max-w-[350px] block font-mono">
+                    <span className="text-[11px] text-slate-600 truncate max-w-[200px] sm:max-w-[350px] block font-mono">
                       {resultData.filename}
                     </span>
                   )}
                   {resultData?.meta && (
-                    <span className="text-[11px] text-emerald-300/80 block">
+                    <span className="text-[11px] text-emerald-700 block">
                       Ukuran berkurang{' '}
-                      <span className="font-bold text-white">
+                      <span className="font-bold text-emerald-900">
                         {Math.max(
                           0,
                           Math.round(
@@ -774,7 +774,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
               </div>
               <button
                 onClick={handleDownload}
-                className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all shrink-0 w-full sm:w-auto"
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition-all shrink-0 w-full sm:w-auto"
               >
                 <Download className="w-4 h-4 shrink-0" />
                 <span>Unduh Hasil</span>
@@ -784,10 +784,10 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
         </div>
 
         {/* Workspace Bottom Action Footer */}
-        <div className="px-4 sm:px-6 py-4 border-t border-slate-800 bg-slate-900/80 flex items-center justify-between gap-3">
+        <div className="px-4 sm:px-6 py-4 border-t border-slate-100 bg-slate-50/80 flex items-center justify-between gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
+            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-900 hover:bg-slate-200/60 transition-colors shrink-0"
           >
             Batal
           </button>
@@ -796,7 +796,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
             {status === 'success' ? (
               <button
                 onClick={handleDownload}
-                className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/25 transition-all shrink-0"
+                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center gap-2 shadow-md shadow-emerald-600/20 transition-all shrink-0"
               >
                 <Download className="w-4 h-4 shrink-0" />
                 <span>Unduh Hasil</span>
@@ -805,10 +805,10 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
               <button
                 disabled={files.length === 0 || status === 'processing'}
                 onClick={handleStartConversion}
-                className={`px-6 py-2.5 rounded-xl text-xs font-extrabold text-white flex items-center gap-2 transition-all shadow-lg ${
+                className={`px-6 py-2.5 rounded-xl text-xs font-extrabold text-white flex items-center gap-2 transition-all shadow-md ${
                   files.length === 0 || status === 'processing'
-                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-rose-500 to-indigo-600 hover:opacity-90 shadow-rose-500/25'
+                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                    : 'bg-gradient-to-r from-rose-500 to-indigo-600 hover:opacity-95 shadow-rose-500/20'
                 }`}
               >
                 {status === 'processing' ? (

@@ -15,11 +15,11 @@ export const ToolGrid: React.FC<ToolGridProps> = ({
   if (tools.length === 0) {
     return (
       <div className="text-center py-16 max-w-md mx-auto">
-        <div className="w-16 h-16 rounded-2xl bg-slate-900 flex items-center justify-center mx-auto mb-4 border border-slate-800 text-slate-500">
+        <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center mx-auto mb-4 border border-slate-200 text-slate-400">
           <FileQuestion className="w-8 h-8" />
         </div>
-        <h3 className="text-lg font-bold text-white mb-2">Tool Tidak Ditemukan</h3>
-        <p className="text-xs text-slate-400">
+        <h3 className="text-lg font-bold text-slate-900 mb-2">Tool Tidak Ditemukan</h3>
+        <p className="text-xs text-slate-500">
           Tidak ada tool yang cocok dengan kata kunci pencarian Anda. Coba gunakan kata kunci lain seperti "PDF", "Merge", atau "Image".
         </p>
       </div>

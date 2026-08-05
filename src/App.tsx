@@ -31,9 +31,9 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-['Inter'] relative selection:bg-rose-500 selection:text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-['Inter'] relative selection:bg-rose-500 selection:text-white">
       {/* Background Decorative Grids & Glows */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b15_1px,transparent_1px),linear-gradient(to_bottom,#1e293b15_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#cbd5e140_1px,transparent_1px),linear-gradient(to_bottom,#cbd5e140_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
 
       <Navbar
         selectedCategory={selectedCategory}

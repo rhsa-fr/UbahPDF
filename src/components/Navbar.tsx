@@ -14,7 +14,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onReset,
 }) => {
   return (
-    <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-800/80">
+    <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-200/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <div
@@ -22,20 +22,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           className="flex items-center gap-3 cursor-pointer group select-none"
         >
           <div className="flex items-center justify-center p-1">
-            <TdocLogo size={38} />
+            <TdocLogo size={36} />
           </div>
-          <div>
-            <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent font-['Outfit']">
+          <div className="flex items-center gap-2">
+            <span className="font-extrabold text-xl tracking-tight text-slate-900 font-['Outfit']">
               UbahPDF
-            </span>
-            <span className="ml-2 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">
-              Pro
             </span>
           </div>
         </div>
 
         {/* Category Navigation Pills */}
-        <nav className="hidden md:flex items-center gap-1 bg-slate-900/60 p-1 rounded-xl border border-slate-800">
+        <nav className="hidden md:flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200/80">
           {[
             { id: 'all', label: 'Semua Tool' },
             { id: 'pdf', label: 'PDF' },
@@ -46,10 +43,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               key={cat.id}
               onClick={() => onSelectCategory(cat.id)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 selectedCategory === cat.id
-                  ? 'bg-rose-500 text-white shadow-md shadow-rose-500/25'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
               }`}
             >
               {cat.label}
@@ -59,9 +56,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Client-Side Privacy Badge */}
         <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-950/50 px-3 py-1.5 rounded-full border border-emerald-500/20 shadow-inner">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span className="font-medium">100% Private (Browser-Only)</span>
+          <div className="hidden sm:flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200 shadow-sm">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <span className="font-semibold">100% Private (Browser-Only)</span>
           </div>
         </div>
       </div>
