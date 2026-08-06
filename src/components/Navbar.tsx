@@ -37,19 +37,15 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Brand Logo */}
         <div
           onClick={handleLogoClick}
-          className="flex items-center gap-2 sm:gap-3 cursor-pointer group select-none"
+          className="flex items-center gap-1.5 sm:gap-2 cursor-pointer group select-none"
         >
-          <div className="flex items-center justify-center">
-            <TdocLogo size={42} />
-          </div>
-          <div className="flex items-center gap-0.5 select-none">
-            <span className="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900 font-['Outfit']">
-              Ubah
-            </span>
-            <span className="font-black text-lg sm:text-xl tracking-tight bg-gradient-to-r from-rose-500 via-purple-600 to-indigo-600 bg-clip-text text-transparent font-['Outfit']">
-              PDF
-            </span>
-          </div>
+          <span className="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900 font-['Outfit']">
+            Ubah
+          </span>
+          <TdocLogo size={34} />
+          <span className="font-black text-lg sm:text-xl tracking-tight text-slate-900 font-['Outfit']">
+            PDF
+          </span>
         </div>
 
         {/* Desktop Category Navigation Pills */}
