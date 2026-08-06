@@ -1,18 +1,35 @@
 import React, { useState, useMemo } from 'react';
+import { Routes, Route, useParams } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { ToolGrid } from './components/ToolGrid';
-import { ToolWorkspace } from './components/ToolWorkspace';
+import { ToolPage } from './components/ToolPage';
+import { BlogListPage } from './components/BlogListPage';
+import { BlogPostPage } from './components/BlogPostPage';
 import { Footer } from './components/Footer';
+import { SEOHead } from './components/SEOHead';
 import { TOOLS } from './data/toolsData';
-import type { Tool } from './types';
+
+const ToolRouteHandler: React.FC = () => {
+  const { toolId } = useParams<{ toolId: string }>();
+  const tool = TOOLS.find((t) => t.id === toolId);
+
+  if (!tool) {
+    return (
+      <div className="text-center py-20">
+        <h2 className="text-2xl font-bold text-slate-900 mb-2 font-['Outfit'] font-extrabold">Halaman Tidak Ditemukan</h2>
+        <p className="text-slate-500 text-sm">Halaman yang Anda cari tidak tersedia.</p>
+      </div>
+    );
+  }
+
+  return <ToolPage tool={tool} />;
+};
 
 export const App: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [activeTool, setActiveTool] = useState<Tool | null>(null);
 
-  // Filter tools dynamically based on selected category & search input
   const filteredTools = useMemo(() => {
     return TOOLS.filter((tool) => {
       const matchesCategory =
@@ -27,7 +44,6 @@ export const App: React.FC = () => {
   const handleReset = () => {
     setSelectedCategory('all');
     setSearchQuery('');
-    setActiveTool(null);
   };
 
   return (
@@ -42,23 +58,24 @@ export const App: React.FC = () => {
       />
 
       <main className="flex-1">
-        <Hero
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-        />
-
-        <ToolGrid
-          tools={filteredTools}
-          onSelectTool={(tool) => setActiveTool(tool)}
-        />
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <>
+                <SEOHead toolId={null} />
+                <Hero searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+                <ToolGrid tools={filteredTools} />
+              </>
+            }
+          />
+          <Route path="/panduan" element={<BlogListPage />} />
+          <Route path="/panduan/:slug" element={<BlogPostPage />} />
+          <Route path="/:toolId" element={<ToolRouteHandler />} />
+        </Routes>
       </main>
 
       <Footer />
-
-      {/* Active Workspace Modal */}
-      {activeTool && (
-        <ToolWorkspace tool={activeTool} onClose={() => setActiveTool(null)} />
-      )}
     </div>
   );
 };

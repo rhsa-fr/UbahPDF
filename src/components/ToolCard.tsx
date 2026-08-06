@@ -1,19 +1,18 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import type { Tool } from '../types';
 
 interface ToolCardProps {
   tool: Tool;
-  onClick: (tool: Tool) => void;
 }
 
-export const ToolCard: React.FC<ToolCardProps> = ({ tool, onClick }) => {
-  // Dynamically map icon name string to Lucide Icon component
+export const ToolCard: React.FC<ToolCardProps> = ({ tool }) => {
   const IconComponent = (Icons as any)[tool.iconName] || Icons.FileText;
 
   return (
-    <div
-      onClick={() => onClick(tool)}
+    <Link
+      to={`/${tool.id}`}
       className="group relative bg-white rounded-2xl p-6 cursor-pointer flex flex-col justify-between overflow-hidden select-none border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-slate-300 hover:-translate-y-1 transition-all duration-300"
     >
       {/* Top Accent Gradient Line */}
@@ -52,6 +51,6 @@ export const ToolCard: React.FC<ToolCardProps> = ({ tool, onClick }) => {
         <span>Gunakan Tool</span>
         <Icons.ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform text-rose-500" />
       </div>
-    </div>
+    </Link>
   );
 };

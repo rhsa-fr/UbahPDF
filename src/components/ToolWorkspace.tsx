@@ -35,9 +35,10 @@ import type { Tool, UploadedFile, PdfPageThumbnail, ConversionOptions } from '..
 interface ToolWorkspaceProps {
   tool: Tool;
   onClose: () => void;
+  isEmbedded?: boolean;
 }
 
-export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) => {
+export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isEmbedded = false }) => {
   const ToolHeaderIcon = (Icons as any)[tool.iconName] || Icons.FileText;
   const modalBodyRef = useRef<HTMLDivElement | null>(null);
 
@@ -360,9 +361,17 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose }) =
     }
   };
 
+  const containerClass = isEmbedded
+    ? "relative w-full bg-white rounded-3xl overflow-hidden flex flex-col"
+    : "fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn";
+
+  const innerClass = isEmbedded
+    ? "relative w-full bg-white rounded-3xl overflow-hidden flex flex-col"
+    : "relative w-full max-w-4xl max-h-[90vh] bg-white rounded-3xl overflow-hidden border border-slate-200 flex flex-col shadow-2xl";
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-3xl overflow-hidden border border-slate-200 flex flex-col shadow-2xl">
+    <div className={containerClass}>
+      <div className={innerClass}>
         {/* Workspace Top Header */}
         <div className="px-4 sm:px-6 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80 gap-2">
           <div className="flex items-center gap-2.5 min-w-0">

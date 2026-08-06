@@ -1,5 +1,6 @@
 import React from 'react';
-import { ShieldCheck } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { ShieldCheck, BookOpen } from 'lucide-react';
 import { TdocLogo } from './TdocLogo';
 
 interface NavbarProps {
@@ -13,12 +14,19 @@ export const Navbar: React.FC<NavbarProps> = ({
   selectedCategory,
   onReset,
 }) => {
+  const navigate = useNavigate();
+
+  const handleLogoClick = () => {
+    onReset();
+    navigate('/');
+  };
+
   return (
     <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-200/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <div
-          onClick={onReset}
+          onClick={handleLogoClick}
           className="flex items-center gap-3 cursor-pointer group select-none"
         >
           <div className="flex items-center justify-center p-1">
@@ -45,7 +53,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           ].map((cat) => (
             <button
               key={cat.id}
-              onClick={() => onSelectCategory(cat.id)}
+              onClick={() => {
+                onSelectCategory(cat.id);
+                navigate('/');
+              }}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 selectedCategory === cat.id
                   ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80'
@@ -57,9 +68,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           ))}
         </nav>
 
-        {/* Client-Side Privacy Badge */}
+        {/* Client-Side Privacy Badge & Blog Link */}
         <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200 shadow-sm">
+          <Link
+            to="/panduan"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold transition-all shadow-2xs"
+          >
+            <BookOpen className="w-4 h-4 text-rose-500" />
+            <span>Panduan & Tips</span>
+          </Link>
+
+          <div className="hidden lg:flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200 shadow-sm">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
             <span className="font-semibold">100% Private (Browser-Only)</span>
           </div>
