@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { ShieldCheck, BookOpen } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 import { TdocLogo } from './TdocLogo';
 
 interface NavbarProps {
@@ -77,11 +77,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             <BookOpen className="w-3.5 h-3.5 text-rose-500" />
             <span className="text-[11px] sm:text-xs">Panduan & Tips</span>
           </Link>
-
-          <div className="hidden lg:flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200 shadow-sm">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span className="font-semibold">100% Private (Browser-Only)</span>
-          </div>
         </div>
       </div>
 
