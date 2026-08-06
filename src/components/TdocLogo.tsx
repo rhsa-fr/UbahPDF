@@ -5,13 +5,13 @@ interface LogoProps {
   size?: number;
 }
 
-export const TdocLogo: React.FC<LogoProps> = ({ className = '', size = 42 }) => {
+export const TdocLogo: React.FC<LogoProps> = ({ className = '', size = 36 }) => {
   return (
     <img
-      src="/logo.png"
-      alt="UbahPDF Logo"
+      src="/favicon.png"
+      alt="UbahPDF Icon"
       style={{ width: `${size}px`, height: `${size}px` }}
-      className={`object-contain transition-transform duration-300 group-hover:scale-105 shrink-0 ${className}`}
+      className={`object-contain transition-transform duration-300 group-hover:rotate-12 ${className}`}
     />
   );
 };
