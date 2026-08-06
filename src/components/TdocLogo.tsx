@@ -5,7 +5,7 @@ interface LogoProps {
   size?: number;
 }
 
-export const TdocLogo: React.FC<LogoProps> = ({ className = '', size = 36 }) => {
+export const TdocLogo: React.FC<LogoProps> = ({ className = '', size = 42 }) => {
   return (
     <img
       src="/logo.png"

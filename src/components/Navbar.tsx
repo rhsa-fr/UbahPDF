@@ -39,8 +39,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={handleLogoClick}
           className="flex items-center gap-2 sm:gap-3 cursor-pointer group select-none"
         >
-          <div className="flex items-center justify-center p-0.5 sm:p-1">
-            <TdocLogo size={32} />
+          <div className="flex items-center justify-center">
+            <TdocLogo size={42} />
           </div>
           <div className="flex items-center gap-0.5 select-none">
             <span className="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900 font-['Outfit']">

@@ -12,7 +12,7 @@ export const Footer: React.FC = () => {
           {/* Col 1: Brand Info & Mission */}
           <div className="col-span-2 md:col-span-1 space-y-3">
             <div className="flex items-center gap-2.5">
-              <TdocLogo size={32} />
+              <TdocLogo size={42} />
               <div className="flex items-center gap-0.5 select-none">
                 <span className="font-extrabold text-xl tracking-tight text-slate-900 font-['Outfit']">
                   Ubah
