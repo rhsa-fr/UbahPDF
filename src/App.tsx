@@ -3,6 +3,7 @@ import { Routes, Route, useParams } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { ToolGrid } from './components/ToolGrid';
+import { HomeGuideSection } from './components/HomeGuideSection';
 import { ToolPage } from './components/ToolPage';
 import { BlogListPage } from './components/BlogListPage';
 import { BlogPostPage } from './components/BlogPostPage';
@@ -66,6 +67,7 @@ export const App: React.FC = () => {
                 <SEOHead toolId={null} />
                 <Hero searchQuery={searchQuery} onSearchChange={setSearchQuery} />
                 <ToolGrid tools={filteredTools} />
+                <HomeGuideSection />
               </>
             }
           />
