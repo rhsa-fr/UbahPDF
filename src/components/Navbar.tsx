@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { ShieldCheck, BookOpen } from 'lucide-react';
 import { TdocLogo } from './TdocLogo';
 
@@ -15,6 +15,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onReset,
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
 
   const handleLogoClick = () => {
     onReset();
@@ -87,25 +89,27 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Mobile Horizontal Swipeable Category Navigation Bar */}
-      <nav className="flex md:hidden items-center gap-1.5 px-4 py-2 border-t border-slate-200/60 overflow-x-auto scrollbar-none bg-slate-50/70">
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => {
-              onSelectCategory(cat.id);
-              navigate('/');
-            }}
-            className={`px-3 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap shrink-0 transition-all ${
-              selectedCategory === cat.id
-                ? 'bg-rose-500 text-white shadow-xs font-bold'
-                : 'bg-white text-slate-600 border border-slate-200/80'
-            }`}
-          >
-            {cat.label}
-          </button>
-        ))}
-      </nav>
+      {/* Mobile Horizontal Category Bar (Only shown on Homepage) */}
+      {isHomePage && (
+        <nav className="flex md:hidden items-center gap-1.5 px-4 py-2 border-t border-slate-200/60 overflow-x-auto scrollbar-none bg-slate-50/70 animate-fadeIn">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => {
+                onSelectCategory(cat.id);
+                navigate('/');
+              }}
+              className={`px-3 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap shrink-0 transition-all ${
+                selectedCategory === cat.id
+                  ? 'bg-rose-500 text-white shadow-xs font-bold'
+                  : 'bg-white text-slate-600 border border-slate-200/80'
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </nav>
+      )}
     </header>
   );
 };
