@@ -10,7 +10,6 @@ export const BlogListPage: React.FC = () => {
   useEffect(() => {
     document.title = 'Panduan & Tips Seputar Dokumen PDF - UbahPDF';
     
-    // Update canonical link
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) {
       canonical = document.createElement('link');
@@ -19,7 +18,6 @@ export const BlogListPage: React.FC = () => {
     }
     canonical.setAttribute('href', 'https://ubahpdf.my.id/panduan');
 
-    // Update meta description
     let desc = document.querySelector('meta[name="description"]');
     if (desc) {
       desc.setAttribute('content', 'Kumpulan panduan, tips, dan tutorial lengkap seputar pengolahan dokumen PDF untuk CPNS, BUMN, perkuliahan, dan dunia kerja.');
@@ -42,31 +40,31 @@ export const BlogListPage: React.FC = () => {
   }, [selectedCategory, searchQuery]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
       {/* Header Banner */}
-      <div className="text-center max-w-3xl mx-auto mb-10">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 text-xs font-semibold mb-4 shadow-xs">
-          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+      <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-10">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700 text-[10px] sm:text-xs font-semibold mb-3 shadow-xs">
+          <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500" />
           <span>Pusat Edukasi & Tutorial UbahPDF</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-['Outfit'] mb-3">
+        <h1 className="text-xl sm:text-4xl font-extrabold text-slate-900 font-['Outfit'] mb-2 sm:mb-3 leading-snug sm:leading-tight">
           Panduan & Tips Pengolahan Dokumen PDF
         </h1>
-        <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
+        <p className="text-slate-600 text-xs sm:text-base leading-relaxed px-2">
           Temukan solusi praktis seputar kompresi dokumen CPNS/BUMN, penggabungan ijazah, serta tips efisiensi dokumen kerja Anda.
         </p>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-10 max-w-4xl mx-auto">
-        <div className="flex flex-wrap gap-1.5 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/80 w-full md:w-auto">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4 mb-8 sm:mb-10 max-w-4xl mx-auto">
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/80 w-full md:w-auto">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+              className={`px-3 sm:px-4 py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold whitespace-nowrap shrink-0 transition-all ${
                 selectedCategory === cat
-                  ? 'bg-white text-slate-900 shadow-xs border border-slate-200'
+                  ? 'bg-white text-slate-900 shadow-xs border border-slate-200 font-bold'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
               }`}
             >
@@ -93,41 +91,41 @@ export const BlogListPage: React.FC = () => {
           Tidak ada panduan yang cocok dengan kata kunci pencarian Anda.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 max-w-5xl mx-auto">
           {filteredPosts.map((post) => (
             <Link
               key={post.id}
               to={`/panduan/${post.slug}`}
-              className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 flex flex-col justify-between group"
+              className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-slate-200 shadow-xs hover:shadow-xl hover:border-slate-300 transition-all duration-300 flex flex-col justify-between group"
             >
               <div>
-                <div className="flex items-center gap-3 text-xs text-slate-400 mb-3">
-                  <span className="px-3 py-1 rounded-full bg-rose-50 text-rose-600 font-bold text-[11px] border border-rose-200">
+                <div className="flex items-center justify-between text-xs text-slate-400 mb-2.5">
+                  <span className="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-600 font-bold text-[10px] border border-rose-200">
                     {post.category}
                   </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
+                  <span className="flex items-center gap-1 text-[11px]">
+                    <Clock className="w-3 h-3" />
                     {post.readTime}
                   </span>
                 </div>
 
-                <h2 className="text-lg sm:text-xl font-bold text-slate-900 font-['Outfit'] group-hover:text-rose-600 transition-colors mb-3 leading-snug">
+                <h2 className="text-base sm:text-xl font-bold text-slate-900 font-['Outfit'] group-hover:text-rose-600 transition-colors mb-2 sm:mb-3 leading-snug">
                   {post.title}
                 </h2>
 
-                <p className="text-slate-600 text-xs sm:text-sm leading-relaxed mb-6 line-clamp-3">
+                <p className="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 line-clamp-3">
                   {post.summary}
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-500 group-hover:text-slate-900 transition-colors">
-                <span className="flex items-center gap-1 text-slate-400 font-normal">
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-500 group-hover:text-slate-900 transition-colors">
+                <span className="flex items-center gap-1 text-slate-400 font-normal text-[11px]">
                   <Calendar className="w-3.5 h-3.5" />
                   {post.publishedDate}
                 </span>
-                <span className="flex items-center gap-1 text-rose-500 font-bold">
+                <span className="flex items-center gap-1 text-rose-500 font-bold text-xs">
                   Baca Selengkapnya
-                  <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
                 </span>
               </div>
             </Link>
