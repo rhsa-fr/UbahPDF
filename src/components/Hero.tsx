@@ -18,20 +18,20 @@ export const Hero: React.FC<HeroProps> = ({
 
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6">
         {/* Top Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 text-xs font-semibold mb-6 shadow-sm">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 text-[10px] sm:text-xs font-semibold mb-4 sm:mb-6 shadow-sm">
           <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
           <span>Konverter Dokumen PDF Cepat, Gratis & Bebas Batasan</span>
         </div>
 
         {/* Title */}
-        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 font-['Outfit'] leading-tight mb-4">
+        <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 font-['Outfit'] leading-snug sm:leading-tight mb-3 sm:mb-4">
           Konversi & Kelola Dokumen PDF{' '}
           <span className="bg-gradient-to-r from-rose-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
             Tanpa Batas
           </span>
         </h1>
 
-        <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto mb-8 leading-relaxed">
+        <p className="text-xs sm:text-base text-slate-600 max-w-2xl mx-auto mb-6 sm:mb-8 leading-relaxed">
           Gabungkan PDF, kompres ukuran file, ubah JPG ke PDF, atau konversi dokumen Office secara instan. File Anda diproses 100% aman di dalam browser tanpa pernah diunggah ke server.
         </p>
 

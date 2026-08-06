@@ -44,15 +44,15 @@ export const ToolPage: React.FC<ToolPageProps> = ({ tool }) => {
         </nav>
 
         {/* Header Section */}
-        <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 text-[11px] sm:text-xs font-semibold mb-3 sm:mb-4 shadow-xs">
-            <Sparkles className="w-3.5 h-3.5 text-rose-500" />
+        <div className="text-center max-w-2xl mx-auto mb-4 sm:mb-8 px-2">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3.5 sm:py-1 rounded-full bg-white border border-slate-200 text-slate-700 text-[10px] sm:text-xs font-semibold mb-2 sm:mb-3 shadow-xs">
+            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-500" />
             <span>Fitur Online UbahPDF</span>
           </div>
-          <h1 className="text-xl sm:text-4xl font-extrabold tracking-tight text-slate-900 font-['Outfit'] mb-2 sm:mb-3">
+          <h1 className="text-lg sm:text-2xl md:text-4xl font-extrabold tracking-tight text-slate-900 font-['Outfit'] leading-snug sm:leading-tight mb-1.5 sm:mb-3">
             {seoInfo.h1}
           </h1>
-          <p className="text-slate-600 text-xs sm:text-base leading-relaxed px-2">
+          <p className="text-slate-500 text-xs sm:text-sm leading-relaxed max-w-xl mx-auto">
             {seoInfo.subheading}
           </p>
         </div>
