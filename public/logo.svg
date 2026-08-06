@@ -1,46 +1,34 @@
 <svg width="120" height="120" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="cleanUbahPdf" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#f43f5e" />
-      <stop offset="100%" stop-color="#8b5cf6" />
-    </linearGradient>
-  </defs>
+  {/* Clean Solid Premium Rose Background */}
+  <rect x="2" y="2" width="36" height="36" rx="9" fill="#e11d48" />
 
-  <!-- Smooth Modern Squircle Container -->
-  <rect
-    x="2"
-    y="2"
-    width="36"
-    height="36"
-    rx="10"
-    fill="url(#cleanUbahPdf)"
-  />
-
-  <!-- Clean Minimalist Document Outline -->
+  {/* Crisp White Document Base */}
   <path
-    d="M 13 11 H 21 L 27 17 V 29 C 27 30.1 26.1 31 25 31 H 13 C 11.9 31 11 30.1 11 29 V 13 C 11 11.9 11.9 11 13 11 Z"
+    d="M 13.5 9.5 H 21.5 L 26.5 14.5 V 29.5 C 26.5 30.3 25.8 31 25 31 H 13.5 C 12.7 31 12 30.3 12 29.5 V 11 C 12 10.2 12.7 9.5 13.5 9.5 Z"
     fill="#ffffff"
-    fill-opacity="0.18"
-    stroke="#ffffff"
-    stroke-width="2"
+  />
+
+  {/* Folded Corner Shade */}
+  <path
+    d="M 21.5 9.5 V 14.5 H 26.5"
+    fill="#be123c"
+    fill-opacity="0.2"
+  />
+
+  {/* Folded Corner Border */}
+  <path
+    d="M 21.5 9.5 V 14.5 H 26.5"
+    stroke="#e11d48"
+    stroke-width="1.5"
     stroke-linecap="round"
     stroke-linejoin="round"
   />
 
-  <!-- Folded Corner -->
+  {/* Clean Geometric 'U' Lettermark Emblem */}
   <path
-    d="M 21 11 V 17 H 27"
-    stroke="#ffffff"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
-
-  <!-- Bold Minimal 'U' Emblem -->
-  <path
-    d="M 16 20 V 24 C 16 25.7 17.3 27 19 27 C 20.7 27 22 25.7 22 24 V 20"
-    stroke="#ffffff"
-    stroke-width="2.4"
+    d="M 16 18 V 22.5 C 16 24.2 17.3 25.5 19 25.5 C 20.7 25.5 22 24.2 22 22.5 V 18"
+    stroke="#e11d48"
+    stroke-width="2.5"
     stroke-linecap="round"
     stroke-linejoin="round"
   />

@@ -49,7 +49,7 @@ export const BlogPostPage: React.FC = () => {
               'name': 'UbahPDF',
               'logo': {
                 '@type': 'ImageObject',
-                'url': 'https://ubahpdf.my.id/logo.svg'
+                'url': 'https://ubahpdf.my.id/logo.png'
               }
             },
             'datePublished': '2026-08-06',

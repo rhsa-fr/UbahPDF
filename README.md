@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="public/logo.svg" width="100" alt="UbahPDF Logo" style="margin-bottom: 12px;" />
+  <img src="public/logo.png" width="100" alt="UbahPDF Logo" style="margin-bottom: 12px;" />
 
   # UbahPDF - All-in-One Client-Side Document Converter
 
