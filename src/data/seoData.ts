@@ -320,5 +320,41 @@ export const SEO_DATA: Record<string, ToolSEOInfo> = {
       { question: 'Format Excel apa yang didukung?', answer: 'Mendukung .xlsx, .xls, dan .csv (comma-separated values).' },
       { question: 'Apakah rumus/formula ikut terkonversi?', answer: 'Tidak, hanya nilai akhir (results) yang ditampilkan. Formula tidak dikalkulasi ulang.' }
     ]
+  },
+  'pdf-to-markdown': {
+    toolId: 'pdf-to-markdown',
+    seoTitle: 'Konversi PDF ke Markdown (.md) Online Gratis - UbahPDF',
+    seoDescription: 'Ubah dokumen PDF menjadi format Markdown (.md) lengkap dengan deteksi heading, list, dan paragraf secara otomatis di browser.',
+    keywords: ['pdf ke markdown', 'pdf to markdown', 'konversi pdf md', 'extract pdf text markdown'],
+    h1: 'Konversi PDF ke Markdown (.md)',
+    subheading: 'Ekstrak konten dokumen PDF menjadi file Markdown dengan deteksi otomatis heading, list, dan paragraf.',
+    steps: [
+      { title: 'Upload File PDF', desc: 'Pilih dokumen PDF digital (bukan hasil scan) yang ingin dikonversi.' },
+      { title: 'Konversi Otomatis', desc: 'Sistem mendeteksi heading berdasarkan ukuran font, list, dan struktur paragraf.' },
+      { title: 'Unduh File .md', desc: 'Download hasil Markdown yang siap digunakan di GitHub, Notion, atau editor lain.' }
+    ],
+    faqs: [
+      { question: 'Apakah heading terdeteksi otomatis?', answer: 'Ya! Sistem mendeteksi heading berdasarkan ukuran font relatif terhadap body text. Font besar menjadi H1, font sedang H2, dst.' },
+      { question: 'Apakah PDF hasil scan bisa dikonversi?', answer: 'Tidak, tool ini hanya mendukung PDF dengan teks digital (bukan gambar/foto scan). PDF hasil scan membutuhkan OCR.' },
+      { question: 'Apakah tabel ikut terkonversi?', answer: 'Tabel di PDF sulit dideteksi karena PDF menyimpan teks berdasarkan koordinat, bukan struktur semantik. Hasilnya mungkin tidak sempurna.' }
+    ]
+  },
+  'word-to-markdown': {
+    toolId: 'word-to-markdown',
+    seoTitle: 'Konversi Word (.docx) ke Markdown Online Gratis - UbahPDF',
+    seoDescription: 'Ubah dokumen Microsoft Word DOCX menjadi format Markdown (.md) bersih dengan heading, bold, italic, list, dan tabel.',
+    keywords: ['word ke markdown', 'docx to markdown', 'konversi word md', 'docx to md online'],
+    h1: 'Konversi Word (.docx) ke Markdown',
+    subheading: 'Ubah dokumen Word menjadi Markdown bersih dengan struktur heading, format teks, list, dan tabel yang akurat.',
+    steps: [
+      { title: 'Upload File DOCX', desc: 'Pilih file dokumen Word (.docx) dari perangkat Anda.' },
+      { title: 'Konversi Semantik', desc: 'Heading, bold, italic, list, dan tabel dikonversi ke syntax Markdown.' },
+      { title: 'Unduh File .md', desc: 'Download Markdown yang bersih dan siap pakai.' }
+    ],
+    faqs: [
+      { question: 'Apakah format bold dan italic ikut terkonversi?', answer: 'Ya! Bold menjadi **teks**, italic menjadi *teks*, dan heading menjadi # syntax Markdown.' },
+      { question: 'Apakah tabel didukung?', answer: 'Ya, tabel dari Word dikonversi menjadi tabel Markdown (format GitHub Flavored Markdown).' },
+      { question: 'Apakah gambar di Word ikut?', answer: 'Gambar embedded di DOCX akan ditampilkan sebagai tag gambar Markdown, tapi file gambar asli tidak di-extract terpisah.' }
+    ]
   }
 };

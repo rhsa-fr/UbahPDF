@@ -20,6 +20,22 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
 }) => {
   if (files.length === 0) return null;
 
+  // Only show panel for tools that actually have configurable options
+  const toolsWithOptions = [
+    'compress-pdf',
+    'page-numbers',
+    'pdf-to-image',
+    'image-to-pdf',
+    'watermark-pdf',
+    'split-pdf',
+    'sign-pdf',
+    'delete-pages',
+    'protect-pdf',
+    'unlock-pdf',
+    'resize-pdf',
+  ];
+  if (!toolsWithOptions.includes(tool.id)) return null;
+
   return (
     <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-4">
       <div className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">

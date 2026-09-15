@@ -67,7 +67,7 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`relative border border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-150 select-none ${
+        className={`relative border border-dashed rounded-xl p-4 sm:p-8 text-center cursor-pointer transition-all duration-150 select-none ${
           isDragging
             ? 'border-indigo-500 bg-indigo-50/40'
             : 'border-zinc-300 hover:border-zinc-400 bg-zinc-50/60 hover:bg-zinc-100/60'
@@ -82,19 +82,21 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
           className="hidden"
         />
 
-        <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center mx-auto mb-3 border border-zinc-200 shadow-xs">
-          <UploadCloud className="w-6 h-6 text-indigo-600" />
+        <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-white flex items-center justify-center mx-auto mb-2 sm:mb-3 border border-zinc-200 shadow-xs">
+          <UploadCloud className="w-4.5 h-4.5 sm:w-6 sm:h-6 text-indigo-600" />
         </div>
 
-        <h3 className="text-sm sm:text-base font-bold text-zinc-900 mb-1">
-          Tarik & Lepas File di Sini
+        <h3 className="text-sm sm:text-base font-bold text-zinc-900 mb-0.5 sm:mb-1">
+          <span className="sm:hidden">Ketuk untuk Memilih File</span>
+          <span className="hidden sm:inline">Tarik & Lepas File di Sini</span>
         </h3>
 
-        <p className="text-xs text-zinc-500 mb-3">
-          atau <span className="text-indigo-600 font-semibold underline underline-offset-2">pilih dari perangkat</span> ({tool.accept})
+        <p className="text-[11px] sm:text-xs text-zinc-500 mb-2 sm:mb-3">
+          <span className="sm:hidden">Format: {tool.accept}</span>
+          <span className="hidden sm:inline">atau <span className="text-indigo-600 font-semibold underline underline-offset-2">pilih dari perangkat</span> ({tool.accept})</span>
         </p>
 
-        <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg btn-primary text-xs">
+        <div className="inline-flex items-center gap-1 sm:gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-lg btn-primary text-xs">
           <Plus className="w-3.5 h-3.5" />
           <span>Pilih File</span>
         </div>
@@ -110,7 +112,7 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
 
       {/* Selected File List */}
       {files.length > 0 && (
-        <div className="mt-5">
+        <div className="mt-3 sm:mt-5">
           <div className="flex items-center justify-between mb-2.5">
             <h4 className="text-xs font-semibold text-zinc-700 uppercase tracking-wider">
               File Terpilih ({files.length})
@@ -123,18 +125,18 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
             </button>
           </div>
 
-          <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
+          <div className="space-y-1 sm:space-y-1.5 max-h-48 sm:max-h-60 overflow-y-auto pr-1">
             {files.map((fileObj) => (
               <div
                 key={fileObj.id}
-                className="flex items-center justify-between p-2.5 rounded-lg bg-white border border-zinc-200 text-xs text-zinc-800 shadow-xs"
+                className="flex items-center justify-between p-2 sm:p-2.5 rounded-lg bg-white border border-zinc-200 text-xs text-zinc-800 shadow-xs"
               >
-                <div className="flex items-center gap-2.5 truncate">
-                  <div className="w-7 h-7 rounded-md bg-indigo-50 flex items-center justify-center shrink-0">
-                    <File className="w-3.5 h-3.5 text-indigo-600" />
+                <div className="flex items-center gap-2 sm:gap-2.5 truncate">
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-indigo-50 flex items-center justify-center shrink-0">
+                    <File className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-600" />
                   </div>
                   <div className="truncate">
-                    <p className="font-medium text-zinc-900 truncate max-w-xs sm:max-w-md">
+                    <p className="font-medium text-zinc-900 truncate max-w-[160px] sm:max-w-md">
                       {fileObj.name}
                     </p>
                     <p className="text-[11px] text-zinc-400 tabular">

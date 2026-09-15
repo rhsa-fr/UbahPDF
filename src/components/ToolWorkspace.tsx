@@ -34,6 +34,7 @@ import {
 } from '../services/pdfService';
 import { textToDocx, docxToPdf } from '../services/docService';
 import { excelToPdf } from '../services/excelService';
+import { pdfToMarkdown, docxToMarkdown } from '../services/markdownService';
 import { downloadFile, parsePageRanges } from '../services/fileUtils';
 import type { Tool, UploadedFile, PdfPageThumbnail, ConversionOptions } from '../types';
 
@@ -371,6 +372,24 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
           filename: `UbahPDF_${files[0].name.replace(/\.[^/.]+$/, '')}.pdf`,
           type: 'single',
         });
+      } else if (tool.id === 'pdf-to-markdown') {
+        setProgressText('Mengekstrak konten PDF ke Markdown...');
+        const mdContent = await pdfToMarkdown(files[0].file);
+        const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8' });
+        setResultData({
+          data: blob,
+          filename: `UbahPDF_${files[0].name.replace(/\.[^/.]+$/, '')}.md`,
+          type: 'single',
+        });
+      } else if (tool.id === 'word-to-markdown') {
+        setProgressText('Mengonversi dokumen Word ke Markdown...');
+        const mdContent = await docxToMarkdown(files[0].file);
+        const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8' });
+        setResultData({
+          data: blob,
+          filename: `UbahPDF_${files[0].name.replace(/\.[^/.]+$/, '')}.md`,
+          type: 'single',
+        });
       }
 
       setStatus('success');
@@ -446,7 +465,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
         </div>
 
         {/* Scrollable Body Content */}
-        <div ref={modalBodyRef} className="p-6 overflow-y-auto flex-1 space-y-6">
+        <div ref={modalBodyRef} className="p-3.5 sm:p-6 overflow-y-auto flex-1 space-y-4 sm:space-y-6">
           {status === 'success' ? (
             <SuccessResultView
               resultData={resultData}
