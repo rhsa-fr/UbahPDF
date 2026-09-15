@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, ShieldCheck } from 'lucide-react';
 import { TdocLogo } from './TdocLogo';
 
 interface NavbarProps {
@@ -32,49 +32,56 @@ export const Navbar: React.FC<NavbarProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-200/80">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
-        {/* Brand Logo */}
-        <div
-          onClick={handleLogoClick}
-          className="flex items-center gap-1.5 sm:gap-2 cursor-pointer group select-none"
-        >
-          <span className="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900 font-['Outfit']">
-            Ubah
-          </span>
-          <TdocLogo size={34} />
-          <span className="font-black text-lg sm:text-xl tracking-tight text-slate-900 font-['Outfit']">
-            PDF
-          </span>
+    <header className="sticky top-0 z-40 w-full header-bar border-b border-zinc-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+        {/* Brand Logo & Client-Side Status */}
+        <div className="flex items-center gap-4">
+          <div
+            onClick={handleLogoClick}
+            className="flex items-center gap-2 cursor-pointer group select-none"
+          >
+            <TdocLogo size={28} />
+            <span className="font-bold text-base sm:text-lg tracking-tight text-zinc-900 font-['Inter']">
+              Ubah<span className="text-indigo-600">PDF</span>
+            </span>
+          </div>
+
+          <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-medium">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span>100% In-Browser · Privat</span>
+          </div>
         </div>
 
-        {/* Desktop Category Navigation Pills */}
-        <nav className="hidden md:flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200/80">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => {
-                onSelectCategory(cat.id);
-                navigate('/');
-              }}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                selectedCategory === cat.id
-                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
+        {/* Desktop Category Navigation Pills - Swiss Segmented Style */}
+        <nav className="hidden md:flex items-center gap-0.5 bg-zinc-100/90 p-1 rounded-lg border border-zinc-200/80">
+          {categories.map((cat) => {
+            const isSelected = selectedCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => {
+                  onSelectCategory(cat.id);
+                  if (!isHomePage) navigate('/');
+                }}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                  isSelected
+                    ? 'bg-white text-zinc-900 shadow-xs font-semibold'
+                    : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/50'
+                }`}
+              >
+                {cat.label}
+              </button>
+            );
+          })}
         </nav>
 
-        {/* Right Actions */}
+        {/* Right Action */}
         <div className="flex items-center gap-2">
           <Link
             to="/panduan"
-            className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold transition-all shadow-2xs"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-zinc-50 text-zinc-700 hover:text-zinc-900 border border-zinc-200 text-xs font-medium transition-all shadow-xs"
           >
-            <BookOpen className="w-3.5 h-3.5 text-rose-500" />
+            <BookOpen className="w-3.5 h-3.5 text-zinc-500" />
             <span className="text-[11px] sm:text-xs">Panduan & Tips</span>
           </Link>
         </div>
@@ -82,23 +89,23 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Horizontal Category Bar (Only shown on Homepage) */}
       {isHomePage && (
-        <nav className="flex md:hidden items-center gap-1.5 px-4 py-2 border-t border-slate-200/60 overflow-x-auto scrollbar-none bg-slate-50/70 animate-fadeIn">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => {
-                onSelectCategory(cat.id);
-                navigate('/');
-              }}
-              className={`px-3 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap shrink-0 transition-all ${
-                selectedCategory === cat.id
-                  ? 'bg-rose-500 text-white shadow-xs font-bold'
-                  : 'bg-white text-slate-600 border border-slate-200/80'
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
+        <nav className="flex md:hidden items-center gap-1.5 px-4 py-2 border-t border-zinc-200/80 overflow-x-auto scrollbar-none bg-zinc-50">
+          {categories.map((cat) => {
+            const isSelected = selectedCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => onSelectCategory(cat.id)}
+                className={`px-3 py-1 rounded-md text-[11px] font-medium whitespace-nowrap shrink-0 transition-all ${
+                  isSelected
+                    ? 'bg-zinc-900 text-white shadow-xs font-semibold'
+                    : 'bg-white text-zinc-600 border border-zinc-200'
+                }`}
+              >
+                {cat.label}
+              </button>
+            );
+          })}
         </nav>
       )}
     </header>

@@ -79,6 +79,12 @@ export interface ConversionOptions {
 
   // Delete pages options
   deletePagesList?: number[];
+
+  // Resize PDF options
+  resizeTarget?: 'a4' | 'letter' | 'legal' | 'f4';
+
+  // Unlock PDF options
+  unlockPassword?: string;
 }
 
 export type ProcessingStatus = 'idle' | 'processing' | 'success' | 'error';

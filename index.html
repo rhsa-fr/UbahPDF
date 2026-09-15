@@ -23,15 +23,29 @@
     <meta property="og:image" content="https://ubahpdf.my.id/logo.png" />
     <meta property="og:site_name" content="UbahPDF" />
 
-    <!-- Google Site Name Structured Data (JSON-LD) -->
+    <!-- Google Site Name & WebApp Structured Data (JSON-LD) -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "UbahPDF",
-      "alternateName": ["Ubah PDF", "UbahPDF Online", "UbahPDF.my.id"],
-      "url": "https://ubahpdf.my.id/"
-    }
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "@id": "https://ubahpdf.my.id/#website",
+        "name": "UbahPDF",
+        "alternateName": ["Ubah PDF", "UbahPDF Online", "UbahPDF.my.id"],
+        "url": "https://ubahpdf.my.id/"
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "@id": "https://ubahpdf.my.id/#webapp",
+        "name": "UbahPDF",
+        "url": "https://ubahpdf.my.id/",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript. Requires HTML5.",
+        "description": "Konversi, gabungkan, pisahkan, kompres, dan edit dokumen PDF, Word, dan Gambar di UbahPDF secara gratis, cepat, dan 100% aman langsung di browser Anda."
+      }
+    ]
     </script>
 
     <!-- Twitter / X -->
@@ -44,9 +58,9 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   </head>
-  <body class="bg-slate-50 text-slate-900 antialiased selection:bg-rose-500 selection:text-white min-h-screen">
+  <body class="bg-[#fafafa] text-zinc-900 antialiased selection:bg-indigo-600 selection:text-white min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

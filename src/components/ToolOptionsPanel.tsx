@@ -307,7 +307,7 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
 
       {tool.id === 'protect-pdf' && (
         <div className="space-y-3 text-xs">
-          <label className="block text-slate-700 font-bold">
+          <label className="block text-zinc-700 font-semibold">
             Masukkan Kata Sandi (Password) Pengunci PDF
           </label>
           <input
@@ -315,11 +315,62 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
             value={options.userPassword || ''}
             onChange={(e) => setOptions({ ...options, userPassword: e.target.value })}
             placeholder="Ketik password untuk mengunci file..."
-            className="w-full p-3 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-purple-500 font-medium"
+            className="w-full p-3 rounded-lg bg-white border border-zinc-200 text-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 font-medium"
           />
-          <p className="text-[11px] text-slate-500">
-            File PDF hasil unduhan akan meminta password ini setiap kali dibuka di aplikasi pembaca PDF.
+          <p className="text-[11px] text-zinc-500">
+            File PDF hasil unduhan akan meminta password ini setiap kali dibuka.
           </p>
+        </div>
+      )}
+
+      {tool.id === 'unlock-pdf' && (
+        <div className="space-y-3 text-xs">
+          <label className="block text-zinc-700 font-semibold">
+            Masukkan Kata Sandi PDF yang Terkunci
+          </label>
+          <input
+            type="password"
+            value={options.unlockPassword || ''}
+            onChange={(e) => setOptions({ ...options, unlockPassword: e.target.value })}
+            placeholder="Ketik password PDF yang ingin dibuka kuncinya..."
+            className="w-full p-3 rounded-lg bg-white border border-zinc-200 text-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 font-medium"
+          />
+          <p className="text-[11px] text-zinc-500">
+            Masukkan password yang diminta saat membuka PDF ini. Hasil download akan bebas password.
+          </p>
+        </div>
+      )}
+
+      {tool.id === 'resize-pdf' && (
+        <div className="space-y-3 text-xs">
+          <label className="block text-zinc-700 font-semibold">Ukuran Halaman Target</label>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { id: 'a4', label: 'A4', desc: '210 × 297 mm (Standar)' },
+              { id: 'letter', label: 'Letter (US)', desc: '216 × 279 mm' },
+              { id: 'legal', label: 'Legal', desc: '216 × 356 mm' },
+              { id: 'f4', label: 'F4 / Folio', desc: '215 × 330 mm (Indonesia)' },
+            ].map((size) => {
+              const selected = (options.resizeTarget || 'a4') === size.id;
+              return (
+                <button
+                  key={size.id}
+                  type="button"
+                  onClick={() => setOptions({ ...options, resizeTarget: size.id as any })}
+                  className={`p-3 rounded-lg border text-left transition-all ${
+                    selected
+                      ? 'border-indigo-400 bg-indigo-50 ring-2 ring-indigo-500/20'
+                      : 'border-zinc-200 bg-white hover:border-zinc-300'
+                  }`}
+                >
+                  <span className={`block font-semibold text-xs ${selected ? 'text-indigo-700' : 'text-zinc-900'}`}>
+                    {size.label}
+                  </span>
+                  <span className="text-[10px] text-zinc-400 tabular">{size.desc}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

@@ -32,6 +32,7 @@ export async function docxToPdf(file: File): Promise<Uint8Array> {
 
   // Create temporary container element in DOM to render DOCX content
   const container = document.createElement('div');
+  container.style.all = 'initial'; // Isolate from Tailwind v4 oklch variables
   container.style.position = 'absolute';
   container.style.left = '-9999px';
   container.style.top = '-9999px';
@@ -42,6 +43,7 @@ export async function docxToPdf(file: File): Promise<Uint8Array> {
   container.style.fontFamily = 'Arial, sans-serif';
   container.style.fontSize = '14px';
   container.style.lineHeight = '1.6';
+  container.style.colorScheme = 'light';
   container.innerHTML = htmlContent;
 
   document.body.appendChild(container);

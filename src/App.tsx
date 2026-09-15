@@ -18,9 +18,9 @@ const ToolRouteHandler: React.FC = () => {
 
   if (!tool) {
     return (
-      <div className="text-center py-20">
-        <h2 className="text-2xl font-bold text-slate-900 mb-2 font-['Outfit'] font-extrabold">Halaman Tidak Ditemukan</h2>
-        <p className="text-slate-500 text-sm">Halaman yang Anda cari tidak tersedia.</p>
+      <div className="text-center py-24 px-4">
+        <h2 className="text-2xl font-bold text-zinc-900 mb-2">Halaman Tidak Ditemukan</h2>
+        <p className="text-zinc-500 text-sm">Alat yang Anda cari tidak tersedia atau URL salah.</p>
       </div>
     );
   }
@@ -49,12 +49,9 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-['Inter'] relative selection:bg-rose-500 selection:text-white">
-      {/* Scroll Restorer for route navigation */}
+    <div className="min-h-screen bg-[#fafafa] text-zinc-900 flex flex-col font-['Inter'] relative selection:bg-indigo-600 selection:text-white">
+      {/* Scroll Restorer */}
       <ScrollToTop />
-
-      {/* Background Decorative Grids & Glows */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#cbd5e140_1px,transparent_1px),linear-gradient(to_bottom,#cbd5e140_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
 
       <Navbar
         selectedCategory={selectedCategory}

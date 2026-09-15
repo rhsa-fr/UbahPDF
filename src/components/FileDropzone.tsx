@@ -67,10 +67,10 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-200 select-none ${
+        className={`relative border border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-150 select-none ${
           isDragging
-            ? 'border-rose-500 bg-rose-50/50 scale-[1.01]'
-            : 'border-slate-200 hover:border-slate-300 bg-slate-50/70 hover:bg-slate-100/60'
+            ? 'border-indigo-500 bg-indigo-50/40'
+            : 'border-zinc-300 hover:border-zinc-400 bg-zinc-50/60 hover:bg-zinc-100/60'
         }`}
       >
         <input
@@ -82,27 +82,27 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
           className="hidden"
         />
 
-        <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center mx-auto mb-4 border border-slate-200 shadow-sm">
-          <UploadCloud className="w-8 h-8 text-rose-500 animate-bounce" />
+        <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center mx-auto mb-3 border border-zinc-200 shadow-xs">
+          <UploadCloud className="w-6 h-6 text-indigo-600" />
         </div>
 
-        <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-1 font-['Outfit']">
+        <h3 className="text-sm sm:text-base font-bold text-zinc-900 mb-1">
           Tarik & Lepas File di Sini
         </h3>
 
-        <p className="text-xs text-slate-500 mb-4">
-          atau <span className="text-rose-600 font-semibold underline">pilih file dari perangkat</span> ({tool.accept})
+        <p className="text-xs text-zinc-500 mb-3">
+          atau <span className="text-indigo-600 font-semibold underline underline-offset-2">pilih dari perangkat</span> ({tool.accept})
         </p>
 
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold shadow-md shadow-rose-500/20 transition-all">
-          <Plus className="w-4 h-4" />
+        <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg btn-primary text-xs">
+          <Plus className="w-3.5 h-3.5" />
           <span>Pilih File</span>
         </div>
       </div>
 
-      {/* Error notification if any */}
+      {/* Error notification */}
       {errorMsg && (
-        <div className="mt-3 flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs">
+        <div className="mt-3 flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{errorMsg}</span>
         </div>
@@ -110,34 +110,34 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
 
       {/* Selected File List */}
       {files.length > 0 && (
-        <div className="mt-6">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+        <div className="mt-5">
+          <div className="flex items-center justify-between mb-2.5">
+            <h4 className="text-xs font-semibold text-zinc-700 uppercase tracking-wider">
               File Terpilih ({files.length})
             </h4>
             <button
               onClick={onClearAll}
-              className="text-xs font-medium text-rose-600 hover:text-rose-700 transition-colors"
+              className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
             >
               Hapus Semua
             </button>
           </div>
 
-          <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+          <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
             {files.map((fileObj) => (
               <div
                 key={fileObj.id}
-                className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 shadow-2xs"
+                className="flex items-center justify-between p-2.5 rounded-lg bg-white border border-zinc-200 text-xs text-zinc-800 shadow-xs"
               >
-                <div className="flex items-center gap-3 truncate">
-                  <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center shrink-0">
-                    <File className="w-4 h-4 text-rose-500" />
+                <div className="flex items-center gap-2.5 truncate">
+                  <div className="w-7 h-7 rounded-md bg-indigo-50 flex items-center justify-center shrink-0">
+                    <File className="w-3.5 h-3.5 text-indigo-600" />
                   </div>
                   <div className="truncate">
-                    <p className="font-semibold text-slate-900 truncate max-w-xs sm:max-w-md">
+                    <p className="font-medium text-zinc-900 truncate max-w-xs sm:max-w-md">
                       {fileObj.name}
                     </p>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-[11px] text-zinc-400 tabular">
                       {formatBytes(fileObj.size)}
                     </p>
                   </div>
@@ -148,10 +148,10 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
                     e.stopPropagation();
                     onRemoveFile(fileObj.id);
                   }}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                  className="p-1 rounded-md text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                   title="Hapus file"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             ))}

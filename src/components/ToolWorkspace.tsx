@@ -27,8 +27,13 @@ import {
   signPdf,
   deletePdfPages,
   protectPdf,
+  unlockPdf,
+  resizePdfPages,
+  extractImagesFromPdf,
+  grayscalePdf,
 } from '../services/pdfService';
 import { textToDocx, docxToPdf } from '../services/docService';
+import { excelToPdf } from '../services/excelService';
 import { downloadFile, parsePageRanges } from '../services/fileUtils';
 import type { Tool, UploadedFile, PdfPageThumbnail, ConversionOptions } from '../types';
 
@@ -326,6 +331,46 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
           filename: `UbahPDF_Protected_${files[0].name}`,
           type: 'single',
         });
+      } else if (tool.id === 'unlock-pdf') {
+        setProgressText('Membuka kunci proteksi PDF...');
+        const unlockedBytes = await unlockPdf(files[0].file, options.unlockPassword);
+        setResultData({
+          data: unlockedBytes,
+          filename: `UbahPDF_Unlocked_${files[0].name}`,
+          type: 'single',
+        });
+      } else if (tool.id === 'resize-pdf') {
+        setProgressText('Mengubah ukuran halaman PDF...');
+        const resizedBytes = await resizePdfPages(files[0].file, options.resizeTarget || 'a4');
+        setResultData({
+          data: resizedBytes,
+          filename: `UbahPDF_Resized_${files[0].name}`,
+          type: 'single',
+        });
+      } else if (tool.id === 'extract-images') {
+        setProgressText('Mengekstrak gambar dari PDF...');
+        const images = await extractImagesFromPdf(files[0].file);
+        setResultData({
+          data: images,
+          filename: `UbahPDF_Images_${files[0].name}.zip`,
+          type: 'images',
+        });
+      } else if (tool.id === 'grayscale-pdf') {
+        setProgressText('Mengonversi PDF menjadi hitam putih...');
+        const grayBytes = await grayscalePdf(files[0].file);
+        setResultData({
+          data: grayBytes,
+          filename: `UbahPDF_Grayscale_${files[0].name}`,
+          type: 'single',
+        });
+      } else if (tool.id === 'excel-to-pdf') {
+        setProgressText('Mengonversi file Excel menjadi PDF...');
+        const pdfBytes = await excelToPdf(files[0].file);
+        setResultData({
+          data: pdfBytes,
+          filename: `UbahPDF_${files[0].name.replace(/\.[^/.]+$/, '')}.pdf`,
+          type: 'single',
+        });
       }
 
       setStatus('success');
@@ -362,30 +407,30 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
   };
 
   const containerClass = isEmbedded
-    ? "relative w-full bg-white rounded-3xl overflow-hidden flex flex-col"
-    : "fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn";
+    ? "relative w-full bg-white rounded-xl overflow-hidden flex flex-col"
+    : "fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/30 backdrop-blur-sm animate-fadeIn";
 
   const innerClass = isEmbedded
-    ? "relative w-full bg-white rounded-3xl overflow-hidden flex flex-col"
-    : "relative w-full max-w-4xl max-h-[90vh] bg-white rounded-3xl overflow-hidden border border-slate-200 flex flex-col shadow-2xl";
+    ? "relative w-full bg-white rounded-xl overflow-hidden flex flex-col"
+    : "relative w-full max-w-4xl max-h-[90vh] bg-white rounded-xl overflow-hidden border border-zinc-200 flex flex-col shadow-lg";
 
   return (
     <div className={containerClass}>
       <div className={innerClass}>
         {/* Workspace Top Header */}
-        <div className="px-4 sm:px-6 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80 gap-2">
+        <div className="px-4 sm:px-6 py-3 border-b border-zinc-200 flex items-center justify-between bg-zinc-50 gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
             <div
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-bold shadow-2xs shrink-0"
-              style={{ backgroundColor: `${tool.color}15`, color: tool.color }}
+              className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+              style={{ backgroundColor: 'var(--accent-subtle)', color: 'var(--accent)' }}
             >
               <ToolHeaderIcon className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 font-['Outfit'] truncate">
+              <h2 className="text-sm sm:text-base font-bold text-zinc-900 truncate">
                 {tool.name}
               </h2>
-              <p className="text-[11px] sm:text-xs text-slate-500 truncate sm:whitespace-normal">
+              <p className="text-[11px] sm:text-xs text-zinc-500 truncate sm:whitespace-normal">
                 {tool.description}
               </p>
             </div>
@@ -394,7 +439,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
           <button
             onClick={onClose}
             aria-label="Tutup"
-            className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors shrink-0"
+            className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
@@ -489,8 +534,8 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
 
               {/* Thumbnail Preview & Visual Page Tools */}
               {isLoadingThumbnails && (
-                <div className="flex items-center justify-center py-8 gap-3 text-slate-400 text-xs">
-                  <Loader2 className="w-5 h-5 animate-spin text-rose-400" />
+                <div className="flex items-center justify-center py-8 gap-3 text-zinc-400 text-xs">
+                  <Loader2 className="w-5 h-5 animate-spin text-indigo-500" />
                   <span>Membuat pratinjau halaman PDF...</span>
                 </div>
               )}
@@ -522,15 +567,15 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
 
               {/* Status Feedback */}
               {status === 'processing' && (
-                <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-700 text-xs flex items-center justify-center gap-3">
-                  <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                <div className="p-4 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs flex items-center justify-center gap-3">
+                  <Loader2 className="w-5 h-5 animate-spin text-indigo-600" />
                   <span className="font-semibold">{progressText}</span>
                 </div>
               )}
 
               {status === 'error' && (
-                <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-3">
-                  <AlertTriangle className="w-5 h-5 shrink-0 text-rose-600" />
+                <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-3">
+                  <AlertTriangle className="w-5 h-5 shrink-0 text-red-600" />
                   <span>{errorMsg}</span>
                 </div>
               )}
@@ -539,11 +584,11 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
         </div>
 
         {/* Workspace Bottom Action Footer */}
-        <div className="px-4 sm:px-6 py-3.5 border-t border-slate-100 bg-slate-50/80 flex items-center justify-between gap-3">
+        <div className="px-4 sm:px-6 py-3 border-t border-zinc-200 bg-zinc-50 flex items-center justify-between gap-3">
           {status === 'success' ? (
             <button
               onClick={onClose}
-              className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors border border-slate-200 text-center"
+              className="w-full py-2.5 rounded-lg btn-ghost text-xs font-semibold text-center"
             >
               Selesai & Kembali ke Beranda
             </button>
@@ -551,7 +596,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
             <>
               <button
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-900 hover:bg-slate-200/60 transition-colors shrink-0"
+                className="px-4 py-2 rounded-lg text-xs font-medium text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors shrink-0"
               >
                 Batal
               </button>
@@ -559,10 +604,10 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
               <button
                 disabled={files.length === 0 || status === 'processing'}
                 onClick={handleStartConversion}
-                className={`px-5 sm:px-6 py-2.5 rounded-xl text-xs font-extrabold text-white flex items-center gap-2 transition-all shadow-md ${
+                className={`px-5 sm:px-6 py-2.5 rounded-lg text-xs font-semibold text-white flex items-center gap-2 transition-all ${
                   files.length === 0 || status === 'processing'
-                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-                    : 'bg-gradient-to-r from-rose-500 to-indigo-600 hover:opacity-95 shadow-rose-500/20'
+                    ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
+                    : 'btn-primary'
                 }`}
               >
                 {status === 'processing' ? (

@@ -235,5 +235,90 @@ export const SEO_DATA: Record<string, ToolSEOInfo> = {
     faqs: [
       { question: 'Apakah enkripsi ini aman?', answer: 'Ya, enkripsi diproses secara standar keamanan dokumen tinggi langsung di browser Anda.' }
     ]
+  },
+  'unlock-pdf': {
+    toolId: 'unlock-pdf',
+    seoTitle: 'Buka Kunci PDF Online Gratis / Unlock PDF - UbahPDF',
+    seoDescription: 'Hapus proteksi password dari dokumen PDF yang terkunci secara gratis dan 100% aman langsung di browser.',
+    keywords: ['buka kunci pdf', 'unlock pdf', 'hapus password pdf', 'pdf terkunci'],
+    h1: 'Buka Kunci & Hapus Password PDF',
+    subheading: 'Masukkan password untuk membuka PDF terkunci, lalu unduh versi bebas kunci tanpa batasan.',
+    steps: [
+      { title: 'Upload PDF Terkunci', desc: 'Pilih file PDF yang dilindungi password.' },
+      { title: 'Masukkan Password', desc: 'Ketik kata sandi yang diperlukan untuk membuka file.' },
+      { title: 'Unduh PDF Bebas Kunci', desc: 'Download file PDF yang sudah tidak ada proteksi password.' }
+    ],
+    faqs: [
+      { question: 'Apakah saya harus tahu passwordnya?', answer: 'Ya, Anda perlu mengetahui password pembuka PDF. Tool ini tidak membobol password.' },
+      { question: 'Apakah file saya aman?', answer: 'Ya, semua proses dilakukan di browser Anda. File tidak pernah dikirim ke server.' }
+    ]
+  },
+  'resize-pdf': {
+    toolId: 'resize-pdf',
+    seoTitle: 'Ubah Ukuran Halaman PDF ke A4 / F4 / Letter - UbahPDF',
+    seoDescription: 'Ubah ukuran semua halaman PDF ke A4, F4/Folio, Letter, atau Legal secara otomatis dan gratis.',
+    keywords: ['ubah ukuran pdf', 'resize pdf', 'pdf ke a4', 'pdf ke f4', 'pdf ke letter'],
+    h1: 'Ubah Ukuran Halaman PDF ke A4, F4, Letter, atau Legal',
+    subheading: 'Sesuaikan ukuran halaman seluruh PDF secara otomatis agar sesuai standar cetak atau upload.',
+    steps: [
+      { title: 'Upload File PDF', desc: 'Pilih dokumen PDF yang ingin diubah ukuran halamannya.' },
+      { title: 'Pilih Ukuran Target', desc: 'Pilih A4, Letter, Legal, atau F4/Folio.' },
+      { title: 'Unduh Hasil', desc: 'Download PDF dengan ukuran halaman baru.' }
+    ],
+    faqs: [
+      { question: 'Apakah konten PDF saya akan terpotong?', answer: 'Tidak. Konten akan discale secara proporsional agar tetap utuh di dalam ukuran halaman baru.' },
+      { question: 'Apa itu ukuran F4/Folio?', answer: 'F4 atau Folio (215 × 330 mm) adalah ukuran kertas yang umum digunakan di Indonesia untuk dokumen legal dan surat dinas.' }
+    ]
+  },
+  'extract-images': {
+    toolId: 'extract-images',
+    seoTitle: 'Ekstrak Gambar dari PDF Online Gratis - UbahPDF',
+    seoDescription: 'Ambil semua gambar yang ada di dalam dokumen PDF dan simpan sebagai file PNG terpisah secara gratis.',
+    keywords: ['ekstrak gambar pdf', 'ambil gambar dari pdf', 'extract images pdf'],
+    h1: 'Ekstrak Semua Gambar dari Dokumen PDF',
+    subheading: 'Ambil foto, ilustrasi, dan grafis yang tertanam di dalam PDF sebagai file gambar terpisah.',
+    steps: [
+      { title: 'Upload File PDF', desc: 'Pilih dokumen PDF yang berisi gambar.' },
+      { title: 'Proses Ekstraksi', desc: 'Setiap halaman dirender dan gambar diekstrak otomatis.' },
+      { title: 'Unduh Gambar', desc: 'Download semua gambar hasil ekstraksi dalam format PNG.' }
+    ],
+    faqs: [
+      { question: 'Format gambar apa yang dihasilkan?', answer: 'Gambar dihasilkan dalam format PNG resolusi tinggi.' },
+      { question: 'Apakah bisa mengambil gambar tertentu saja?', answer: 'Saat ini semua halaman diekstrak. Anda bisa menghapus gambar yang tidak diperlukan setelah download.' }
+    ]
+  },
+  'grayscale-pdf': {
+    toolId: 'grayscale-pdf',
+    seoTitle: 'Konversi PDF ke Hitam Putih (Grayscale) Gratis - UbahPDF',
+    seoDescription: 'Ubah PDF berwarna menjadi hitam putih (grayscale) untuk menghemat ukuran file dan tinta cetak.',
+    keywords: ['pdf hitam putih', 'grayscale pdf', 'konversi pdf bw', 'pdf hemat tinta'],
+    h1: 'Konversi PDF ke Hitam Putih (Grayscale)',
+    subheading: 'Ubah dokumen PDF berwarna menjadi grayscale untuk mencetak hemat tinta atau memperkecil ukuran file.',
+    steps: [
+      { title: 'Upload File PDF', desc: 'Pilih dokumen PDF berwarna yang ingin diubah.' },
+      { title: 'Konversi Grayscale', desc: 'Setiap halaman dikonversi ke hitam putih dengan formula luminance.' },
+      { title: 'Unduh Hasil', desc: 'Download PDF hitam putih yang siap cetak.' }
+    ],
+    faqs: [
+      { question: 'Apakah teks tetap terbaca?', answer: 'Ya, konversi grayscale mempertahankan keterbacaan teks. Hanya warna yang diubah ke skala abu-abu.' },
+      { question: 'Apakah ukuran file berkurang?', answer: 'Umumnya ya, terutama untuk PDF yang banyak mengandung gambar berwarna.' }
+    ]
+  },
+  'excel-to-pdf': {
+    toolId: 'excel-to-pdf',
+    seoTitle: 'Konversi Excel (.xlsx) ke PDF Online Gratis - UbahPDF',
+    seoDescription: 'Ubah file Microsoft Excel (.xlsx, .xls, .csv) menjadi dokumen PDF secara gratis dan 100% di browser.',
+    keywords: ['excel ke pdf', 'xlsx to pdf', 'konversi excel pdf', 'spreadsheet to pdf'],
+    h1: 'Konversi File Excel (.xlsx) ke PDF',
+    subheading: 'Ubah spreadsheet Microsoft Excel, XLS, atau CSV menjadi dokumen PDF yang rapi langsung di browser.',
+    steps: [
+      { title: 'Upload File Excel', desc: 'Pilih file .xlsx, .xls, atau .csv dari perangkat Anda.' },
+      { title: 'Konversi Otomatis', desc: 'Spreadsheet dirender menjadi tabel PDF yang rapi.' },
+      { title: 'Unduh PDF', desc: 'Download dokumen PDF hasil konversi.' }
+    ],
+    faqs: [
+      { question: 'Format Excel apa yang didukung?', answer: 'Mendukung .xlsx, .xls, dan .csv (comma-separated values).' },
+      { question: 'Apakah rumus/formula ikut terkonversi?', answer: 'Tidak, hanya nilai akhir (results) yang ditampilkan. Formula tidak dikalkulasi ulang.' }
+    ]
   }
 };

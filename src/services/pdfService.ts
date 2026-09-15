@@ -592,3 +592,183 @@ export async function protectPdf(
   return new Uint8Array(pdfArrayBuffer);
 }
 
+/**
+ * Unlock PDF by removing password protection
+ */
+export async function unlockPdf(
+  file: File,
+  password?: string
+): Promise<Uint8Array> {
+  const arrayBuffer = await readFileAsArrayBuffer(file);
+  const userPass = password?.trim() || '';
+
+  try {
+    // 1. First try loading with pdf-lib ignoreEncryption (works for owner/permission passwords)
+    if (!userPass) {
+      const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+      return await pdfDoc.save();
+    }
+  } catch {
+    // Falls through to pdfjs decryptor
+  }
+
+  // 2. Decrypt using pdfjs-dist which natively supports password parameter
+  try {
+    const loadingTask = pdfjsLib.getDocument({
+      data: arrayBuffer,
+      password: userPass,
+    });
+    const pdf = await loadingTask.promise;
+    const numPages = pdf.numPages;
+
+    const doc = new jsPDF({
+      orientation: 'p',
+      unit: 'pt',
+      format: 'a4',
+    });
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    for (let i = 1; i <= numPages; i++) {
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({ scale: 2.0 });
+
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      if (!context) continue;
+
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+
+      await page.render({
+        canvasContext: context,
+        viewport,
+        canvas,
+      } as any).promise;
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      if (i > 1) doc.addPage();
+      doc.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+    }
+
+    return new Uint8Array(doc.output('arraybuffer'));
+  } catch (err: any) {
+    if (err.name === 'PasswordException' || err.message?.toLowerCase().includes('password')) {
+      throw new Error('Kata sandi salah atau diperlukan. Masukkan kata sandi yang valid.');
+    }
+    throw new Error('Gagal membuka file PDF: ' + (err.message || 'Format tidak valid.'));
+  }
+}
+
+/**
+ * Resize all PDF pages to a target standard size
+ * Supported sizes: A4 (595.28 x 841.89 pt), Letter (612 x 792 pt), Legal (612 x 1008 pt), F4/Folio (609.45 x 935.43 pt)
+ */
+export async function resizePdfPages(
+  file: File,
+  targetSize: 'a4' | 'letter' | 'legal' | 'f4' = 'a4'
+): Promise<Uint8Array> {
+  const SIZES: Record<string, [number, number]> = {
+    a4: [595.28, 841.89],
+    letter: [612.0, 792.0],
+    legal: [612.0, 1008.0],
+    f4: [609.45, 935.43], // 215mm x 330mm
+  };
+
+  const [targetWidth, targetHeight] = SIZES[targetSize] || SIZES.a4;
+  const arrayBuffer = await readFileAsArrayBuffer(file);
+  const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+
+  const pages = pdfDoc.getPages();
+  for (const page of pages) {
+    const { width, height } = page.getSize();
+    const scaleX = targetWidth / width;
+    const scaleY = targetHeight / height;
+    // Scale uniformly to prevent distortion, centered
+    const scale = Math.min(scaleX, scaleY);
+
+    page.scale(scale, scale);
+    page.setSize(targetWidth, targetHeight);
+    
+    // Recenter content
+    const scaledWidth = width * scale;
+    const scaledHeight = height * scale;
+    const offsetX = (targetWidth - scaledWidth) / 2;
+    const offsetY = (targetHeight - scaledHeight) / 2;
+    page.translateContent(offsetX, offsetY);
+  }
+
+  return await pdfDoc.save();
+}
+
+/**
+ * Extract all rendered images from PDF pages at high resolution
+ */
+export async function extractImagesFromPdf(
+  file: File
+): Promise<{ dataUrl: string; name: string }[]> {
+  const images = await pdfToImages(file, { imageFormat: 'png', imageQuality: 1.0 });
+  const baseName = file.name.replace(/\.[^/.]+$/, '');
+
+  return images.map((img, idx) => ({
+    dataUrl: img.dataUrl,
+    name: `${baseName}_Gambar_${idx + 1}.png`,
+  }));
+}
+
+/**
+ * Convert PDF to Grayscale / Black & White
+ * Renders each page to canvas, converts pixel buffer with luminance weights, and outputs clean B&W PDF
+ */
+export async function grayscalePdf(file: File): Promise<Uint8Array> {
+  const arrayBuffer = await readFileAsArrayBuffer(file);
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const numPages = pdf.numPages;
+
+  const doc = new jsPDF({
+    orientation: 'p',
+    unit: 'pt',
+    format: 'a4',
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+    const page = await pdf.getPage(pageNum);
+    const viewport = page.getViewport({ scale: 2.0 });
+
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (!context) continue;
+
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    await page.render({
+      canvasContext: context,
+      viewport,
+      canvas,
+    } as any).promise;
+
+    // Apply grayscale conversion
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      // Standard luminance formula
+      const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      data[i] = gray;
+      data[i + 1] = gray;
+      data[i + 2] = gray;
+    }
+    context.putImageData(imageData, 0, 0);
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.9);
+    if (pageNum > 1) doc.addPage();
+    doc.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+  }
+
+  return new Uint8Array(doc.output('arraybuffer'));
+}
+
