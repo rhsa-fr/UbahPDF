@@ -32,7 +32,7 @@ import {
   extractImagesFromPdf,
   grayscalePdf,
 } from '../services/pdfService';
-import { textToDocx, docxToPdf } from '../services/docService';
+import { textToDocx, docxToPdf, pdfToDocx } from '../services/docService';
 import { excelToPdf } from '../services/excelService';
 import { pdfToMarkdown, docxToMarkdown } from '../services/markdownService';
 import { downloadFile, parsePageRanges } from '../services/fileUtils';
@@ -255,9 +255,8 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
       } else if (tool.id === 'pdf-to-word') {
         const outputFormat = options.pdfToWordFormat || 'docx';
         if (outputFormat === 'docx') {
-          setProgressText('Mengekstrak teks dari PDF dan membuat dokumen Word...');
-          const textContent = await pdfToText(files[0].file);
-          const docxBlob = await textToDocx(textContent);
+          setProgressText('Mengonversi PDF ke dokumen Word (menyimpan layout & gambar)...');
+          const docxBlob = await pdfToDocx(files[0].file);
           setResultData({
             data: docxBlob,
             filename: `UbahPDF_${files[0].name.replace(/\.[^/.]+$/, '')}.docx`,

@@ -1,7 +1,8 @@
 import mammoth from 'mammoth';
-import { Document, Packer, Paragraph, TextRun } from 'docx';
+import { Document, Packer, Paragraph, TextRun, ImageRun, PageBreak } from 'docx';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import * as pdfjsLib from 'pdfjs-dist';
 import { readFileAsArrayBuffer } from './fileUtils';
 
 /**
@@ -113,6 +114,100 @@ export async function textToDocx(text: string): Promise<Blob> {
       {
         properties: {},
         children: paragraphs,
+      },
+    ],
+  });
+
+  return await Packer.toBlob(doc);
+}
+
+/**
+ * Convert PDF to DOCX by rendering each page as a high-resolution image
+ * and embedding into Word document. Preserves visual layout, images, diagrams.
+ */
+export async function pdfToDocx(file: File): Promise<Blob> {
+  const arrayBuffer = await readFileAsArrayBuffer(file);
+  const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const numPages = pdfDoc.numPages;
+
+  // A4 dimensions in EMU (English Metric Units) for docx
+  // 1 inch = 914400 EMU, A4 = 210mm x 297mm = 8.27in x 11.69in
+  const PAGE_WIDTH_EMU = Math.round(8.27 * 914400);
+  const PAGE_HEIGHT_EMU = Math.round(11.69 * 914400);
+  // Leave ~1 inch margin on each side
+  const CONTENT_WIDTH_EMU = Math.round(6.27 * 914400);
+
+  const children: Paragraph[] = [];
+
+  for (let i = 1; i <= numPages; i++) {
+    const page = await pdfDoc.getPage(i);
+    const viewport = page.getViewport({ scale: 2.0 }); // High-res render
+
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (!context) continue;
+
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    await page.render({
+      canvasContext: context,
+      viewport: viewport,
+      canvas: canvas,
+    } as any).promise;
+
+    // Convert canvas to PNG blob then to ArrayBuffer
+    const blob: Blob = await new Promise((resolve) => {
+      canvas.toBlob((b) => resolve(b!), 'image/png');
+    });
+    const imgArrayBuffer = await blob.arrayBuffer();
+
+    // Calculate image dimensions maintaining aspect ratio
+    const aspectRatio = viewport.height / viewport.width;
+    const imgWidthEmu = CONTENT_WIDTH_EMU;
+    const imgHeightEmu = Math.round(imgWidthEmu * aspectRatio);
+
+    const paragraphChildren: (ImageRun | PageBreak)[] = [
+      new ImageRun({
+        data: imgArrayBuffer,
+        transformation: {
+          width: Math.round(imgWidthEmu / 9525), // EMU to pixels (approx for docx)
+          height: Math.round(imgHeightEmu / 9525),
+        },
+        type: 'png',
+      }),
+    ];
+
+    // Add page break after every page except the last
+    if (i < numPages) {
+      paragraphChildren.push(new PageBreak());
+    }
+
+    children.push(
+      new Paragraph({
+        children: paragraphChildren,
+      })
+    );
+  }
+
+  const doc = new Document({
+    sections: [
+      {
+        properties: {
+          page: {
+            size: {
+              width: PAGE_WIDTH_EMU,
+              height: PAGE_HEIGHT_EMU,
+            },
+            margin: {
+              top: 720, // 0.5 inch in twips
+              bottom: 720,
+              left: 720,
+              right: 720,
+            },
+          },
+        },
+        children,
       },
     ],
   });
