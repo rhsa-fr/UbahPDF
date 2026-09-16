@@ -33,6 +33,7 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
     'protect-pdf',
     'unlock-pdf',
     'resize-pdf',
+    'pdf-to-word',
   ];
   if (!toolsWithOptions.includes(tool.id)) return null;
 
@@ -383,6 +384,37 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
                     {size.label}
                   </span>
                   <span className="text-[10px] text-zinc-400 tabular">{size.desc}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {tool.id === 'pdf-to-word' && (
+        <div className="space-y-3 text-xs">
+          <label className="block text-zinc-700 font-semibold">Format Output</label>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { id: 'docx', label: 'Word (.docx)', desc: 'Dokumen Microsoft Word' },
+              { id: 'txt', label: 'Text (.txt)', desc: 'Teks biasa tanpa format' },
+            ].map((fmt) => {
+              const selected = (options.pdfToWordFormat || 'docx') === fmt.id;
+              return (
+                <button
+                  key={fmt.id}
+                  type="button"
+                  onClick={() => setOptions({ ...options, pdfToWordFormat: fmt.id as any })}
+                  className={`p-3 rounded-lg border text-left transition-all ${
+                    selected
+                      ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-500/20'
+                      : 'border-zinc-200 bg-white hover:border-zinc-300'
+                  }`}
+                >
+                  <span className={`block font-semibold text-xs ${selected ? 'text-blue-700' : 'text-zinc-900'}`}>
+                    {fmt.label}
+                  </span>
+                  <span className="text-[10px] text-zinc-400">{fmt.desc}</span>
                 </button>
               );
             })}

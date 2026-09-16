@@ -85,6 +85,9 @@ export interface ConversionOptions {
 
   // Unlock PDF options
   unlockPassword?: string;
+
+  // PDF to Word output format
+  pdfToWordFormat?: 'docx' | 'txt';
 }
 
 export type ProcessingStatus = 'idle' | 'processing' | 'success' | 'error';

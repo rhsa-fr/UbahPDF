@@ -1,5 +1,5 @@
-import React from 'react';
-import { CheckCircle2, Download, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { CheckCircle2, Download, RefreshCw, Pencil } from 'lucide-react';
 import { formatBytes } from '../services/fileUtils';
 
 interface SuccessResultViewProps {
@@ -11,28 +11,71 @@ interface SuccessResultViewProps {
   } | null;
   onDownload: () => void;
   onClearAll: () => void;
+  onRename?: (newName: string) => void;
 }
 
 export const SuccessResultView: React.FC<SuccessResultViewProps> = ({
   resultData,
   onDownload,
   onClearAll,
+  onRename,
 }) => {
+  const fullFilename = resultData?.filename || '';
+  const lastDot = fullFilename.lastIndexOf('.');
+  const defaultBaseName = lastDot !== -1 ? fullFilename.slice(0, lastDot) : fullFilename;
+  const extension = lastDot !== -1 ? fullFilename.slice(lastDot) : '';
+
+  const [baseName, setBaseName] = useState(defaultBaseName);
+
+  useEffect(() => {
+    const dot = (resultData?.filename || '').lastIndexOf('.');
+    setBaseName(dot !== -1 ? (resultData?.filename || '').slice(0, dot) : (resultData?.filename || ''));
+  }, [resultData?.filename]);
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newBase = e.target.value;
+    setBaseName(newBase);
+    if (onRename) {
+      onRename(`${newBase.trim() || defaultBaseName}${extension}`);
+    }
+  };
+
   return (
-    <div className="py-10 px-4 text-center flex flex-col items-center justify-center space-y-5 animate-fadeIn">
+    <div className="py-8 px-4 text-center flex flex-col items-center justify-center space-y-5 animate-fadeIn">
       <div className="w-14 h-14 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center">
         <CheckCircle2 className="w-7 h-7" />
       </div>
 
-      <div className="space-y-2 max-w-md mx-auto">
+      <div className="space-y-3 max-w-md mx-auto w-full">
         <h3 className="text-xl font-bold text-zinc-900">
           Dokumen Berhasil Diproses
         </h3>
+
+        {/* Rename File Input Box */}
         {resultData?.filename && (
-          <p className="text-xs text-zinc-600 font-mono bg-zinc-100 px-3 py-1.5 rounded-lg inline-block border border-zinc-200 truncate max-w-xs sm:max-w-md">
-            {resultData.filename}
-          </p>
+          <div className="w-full max-w-sm mx-auto text-left space-y-1.5">
+            <label className="text-[11px] font-semibold text-zinc-600 flex items-center gap-1.5">
+              <Pencil className="w-3.5 h-3.5 text-zinc-400" />
+              <span>Nama File Hasil:</span>
+            </label>
+            <div className="flex items-center rounded-lg border border-zinc-200 bg-white overflow-hidden shadow-xs focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-400 transition-all">
+              <input
+                type="text"
+                value={baseName}
+                onChange={handleNameChange}
+                placeholder="Ketik nama file baru..."
+                className="flex-1 min-w-0 px-3 py-2 text-xs font-mono text-zinc-800 bg-transparent focus:outline-none"
+              />
+              <span className="px-2.5 py-2 text-xs font-mono font-semibold text-zinc-500 bg-zinc-100/90 border-l border-zinc-200 select-none shrink-0">
+                {extension}
+              </span>
+            </div>
+            <p className="text-[10px] text-zinc-400">
+              Anda dapat mengubah nama file di atas sebelum mengunduh.
+            </p>
+          </div>
         )}
+
         {resultData?.meta && (
           <div className="mt-2 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-lg inline-block">
             Ukuran berkurang{' '}

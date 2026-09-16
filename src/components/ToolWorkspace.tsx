@@ -252,6 +252,27 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
           filename: `UbahPDF_Extracted_${files[0].name.replace(/\.[^/.]+$/, '')}.txt`,
           type: 'single',
         });
+      } else if (tool.id === 'pdf-to-word') {
+        const outputFormat = options.pdfToWordFormat || 'docx';
+        if (outputFormat === 'docx') {
+          setProgressText('Mengekstrak teks dari PDF dan membuat dokumen Word...');
+          const textContent = await pdfToText(files[0].file);
+          const docxBlob = await textToDocx(textContent);
+          setResultData({
+            data: docxBlob,
+            filename: `UbahPDF_${files[0].name.replace(/\.[^/.]+$/, '')}.docx`,
+            type: 'single',
+          });
+        } else {
+          setProgressText('Mengekstrak teks dari PDF...');
+          const textContent = await pdfToText(files[0].file);
+          const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+          setResultData({
+            data: blob,
+            filename: `UbahPDF_${files[0].name.replace(/\.[^/.]+$/, '')}.txt`,
+            type: 'single',
+          });
+        }
       } else if (tool.id === 'txt-to-word') {
         setProgressText('Mengonversi file TXT menjadi DOCX Word...');
         const textContent = await files[0].file.text();
@@ -418,6 +439,28 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
     }
   };
 
+  const handleRenameResult = (newName: string) => {
+    setResultData((prev) => {
+      if (!prev) return null;
+      if (prev.type === 'images' && Array.isArray(prev.data)) {
+        const baseNameWithoutExt = newName.replace(/\.[^/.]+$/, '');
+        const updatedImages = (prev.data as { dataUrl: string; name: string }[]).map((img, idx) => {
+          const imgExt = img.name.slice(img.name.lastIndexOf('.'));
+          return {
+            ...img,
+            name: `${baseNameWithoutExt}_page_${idx + 1}${imgExt}`,
+          };
+        });
+        return {
+          ...prev,
+          filename: newName,
+          data: updatedImages,
+        };
+      }
+      return { ...prev, filename: newName };
+    });
+  };
+
   const handleGoToSignStepPlace = () => {
     setSignStep('place');
     if (modalBodyRef.current) {
@@ -471,6 +514,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
               resultData={resultData}
               onDownload={handleDownload}
               onClearAll={handleClearAll}
+              onRename={handleRenameResult}
             />
           ) : tool.id === 'sign-pdf' && signStep === 'place' ? (
             /* Dedicated Full-Screen Signature Drag Editor (Step 2) */
