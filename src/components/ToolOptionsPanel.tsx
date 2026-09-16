@@ -439,6 +439,9 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
               );
             })}
           </div>
+          <p className="text-[10px] text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 leading-relaxed mt-2">
+            <span className="font-semibold">⚠ Catatan:</span> Hasil konversi mungkin tidak 100% identik dengan file PDF asli. Perbedaan kecil pada tata letak, font, spasi, dan posisi elemen bisa terjadi karena perbedaan mendasar antara format PDF (posisi tetap/cetak) dan Word (teks mengalir). Untuk tampilan yang persis sama, gunakan opsi <strong>"Salinan Visual"</strong>.
+          </p>
         </div>
       )}
     </div>
