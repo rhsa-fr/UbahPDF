@@ -1,5 +1,5 @@
 import mammoth from 'mammoth';
-import { Document, Packer, Paragraph, TextRun, ImageRun } from 'docx';
+import { Document, Packer, Paragraph, TextRun, ImageRun, AlignmentType } from 'docx';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -122,46 +122,93 @@ export async function textToDocx(text: string): Promise<Blob> {
 }
 
 /**
- * Extract embedded images from a PDF page using PDF.js operator list
+ * Matrix multiplication helper for 2D transformation matrices [a, b, c, d, tx, ty]
  */
-async function extractPageImages(
-  page: any
-): Promise<{ data: ArrayBuffer; width: number; height: number }[]> {
-  const images: { data: ArrayBuffer; width: number; height: number }[] = [];
+function multiplyTransform(m1: number[], m2: number[]): number[] {
+  return [
+    m1[0] * m2[0] + m1[1] * m2[2],
+    m1[0] * m2[1] + m1[1] * m2[3],
+    m1[2] * m2[0] + m1[3] * m2[2],
+    m1[2] * m2[1] + m1[3] * m2[3],
+    m1[4] * m2[0] + m1[5] * m2[2] + m2[4],
+    m1[4] * m2[1] + m1[5] * m2[3] + m2[5],
+  ];
+}
+
+interface ExtractedImage {
+  data: ArrayBuffer;
+  displayWidth: number;
+  displayHeight: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  topY: number;
+}
+
+/**
+ * Extract embedded images with their exact coordinates from a PDF page
+ */
+async function extractPageImages(page: any): Promise<ExtractedImage[]> {
+  const images: ExtractedImage[] = [];
   try {
     const opList = await page.getOperatorList();
-    const imageRefs: string[] = [];
 
     const paintOps = [
       (pdfjsLib as any).OPS?.paintImageXObject,
       (pdfjsLib as any).OPS?.paintInlineImageXObject,
     ].filter(Boolean);
 
+    let currentMatrix = [1, 0, 0, 1, 0, 0];
+    const matrixStack: number[][] = [];
+    const imagePositions: { ref: string; x: number; y: number; w: number; h: number }[] = [];
+
     for (let i = 0; i < opList.fnArray.length; i++) {
       const fn = opList.fnArray[i];
-      if (paintOps.includes(fn)) {
-        const imgRef = opList.argsArray[i][0];
-        if (typeof imgRef === 'string' && !imageRefs.includes(imgRef)) {
-          imageRefs.push(imgRef);
+      const args = opList.argsArray[i];
+
+      if (fn === (pdfjsLib as any).OPS?.save) {
+        matrixStack.push([...currentMatrix]);
+      } else if (fn === (pdfjsLib as any).OPS?.restore) {
+        if (matrixStack.length > 0) {
+          currentMatrix = matrixStack.pop()!;
+        }
+      } else if (fn === (pdfjsLib as any).OPS?.transform) {
+        if (args && args.length >= 6) {
+          currentMatrix = multiplyTransform(currentMatrix, args);
+        }
+      } else if (paintOps.includes(fn)) {
+        const imgRef = args?.[0];
+        if (typeof imgRef === 'string') {
+          const imgX = currentMatrix[4] || 0;
+          const imgY = currentMatrix[5] || 0;
+          const imgW = Math.abs(currentMatrix[0]) || 100;
+          const imgH = Math.abs(currentMatrix[3]) || 100;
+          imagePositions.push({
+            ref: imgRef,
+            x: imgX,
+            y: imgY,
+            w: imgW,
+            h: imgH,
+          });
         }
       }
     }
 
-    for (const ref of imageRefs) {
+    for (const pos of imagePositions) {
       try {
         const imgObj = await new Promise<any>((resolve) => {
           let resolved = false;
           try {
-            page.objs.get(ref, (obj: any) => {
+            page.objs.get(pos.ref, (obj: any) => {
               if (!resolved) {
                 resolved = true;
                 resolve(obj);
               }
             });
           } catch {
-            // Some objects might be in commonObjs
             try {
-              page.commonObjs.get(ref, (obj: any) => {
+              page.commonObjs.get(pos.ref, (obj: any) => {
                 if (!resolved) {
                   resolved = true;
                   resolve(obj);
@@ -171,7 +218,6 @@ async function extractPageImages(
               resolve(null);
             }
           }
-          // Safety timeout after 1.5s
           setTimeout(() => {
             if (!resolved) {
               resolved = true;
@@ -216,27 +262,33 @@ async function extractPageImages(
         });
         const arrayBuf = await blob.arrayBuffer();
 
-        // Constrain max display width for Word page (~550px max width)
-        const maxWidthPx = 540;
-        let displayWidth = imgObj.width;
-        let displayHeight = imgObj.height;
+        // Fit display size within page margins (max ~520px)
+        const maxWidthPx = 520;
+        let displayWidth = Math.round(pos.w * (96 / 72));
+        let displayHeight = Math.round(pos.h * (96 / 72));
         if (displayWidth > maxWidthPx) {
           const ratio = maxWidthPx / displayWidth;
           displayWidth = maxWidthPx;
           displayHeight = Math.round(displayHeight * ratio);
         }
+        if (displayWidth < 10 || displayHeight < 10) continue;
 
         images.push({
           data: arrayBuf,
-          width: displayWidth,
-          height: displayHeight,
+          displayWidth,
+          displayHeight,
+          x: pos.x,
+          y: pos.y,
+          w: pos.w,
+          h: pos.h,
+          topY: pos.y + pos.h,
         });
       } catch {
-        // Continue if single image extraction fails
+        // Ignore single image failure
       }
     }
   } catch {
-    // Continue if operator list parsing fails
+    // Ignore operator list failure
   }
 
   return images;
@@ -254,12 +306,21 @@ interface TextChunk {
   fontFamily: string;
 }
 
+interface TextLine {
+  line: TextChunk[];
+  lineStartX: number;
+  lineEndX: number;
+  lineWidth: number;
+  topY: number;
+  bottomY: number;
+}
+
 /**
- * Extract structured text items grouped into editable paragraphs from a PDF page
+ * Extract structured text lines with positioning, font properties, and line groupings
  */
-async function extractStructuredParagraphs(
+async function extractTextLines(
   page: any
-): Promise<{ paragraphs: Paragraph[]; totalChars: number }> {
+): Promise<{ lines: TextLine[]; totalChars: number }> {
   const textContent = await page.getTextContent({ includeMarkedContent: false });
   const items: TextChunk[] = [];
   let totalChars = 0;
@@ -306,14 +367,14 @@ async function extractStructuredParagraphs(
   }
 
   if (items.length === 0) {
-    return { paragraphs: [], totalChars: 0 };
+    return { lines: [], totalChars: 0 };
   }
 
-  // Sort by Y descending (PDF coordinates: Y=0 at bottom, so larger Y is higher on page)
+  // Sort items top-to-bottom (Y descending)
   items.sort((a, b) => b.y - a.y);
 
-  // Group items into lines based on Y coordinate tolerance
-  const lines: TextChunk[][] = [];
+  // Group items into lines
+  const rawLines: TextChunk[][] = [];
   let currentLine: TextChunk[] = [];
   let currentLineY: number | null = null;
 
@@ -326,84 +387,44 @@ async function extractStructuredParagraphs(
       if (Math.abs(item.y - currentLineY) <= tolerance) {
         currentLine.push(item);
       } else {
-        lines.push(currentLine);
+        rawLines.push(currentLine);
         currentLine = [item];
         currentLineY = item.y;
       }
     }
   }
   if (currentLine.length > 0) {
-    lines.push(currentLine);
+    rawLines.push(currentLine);
   }
 
-  // Convert each line into a Paragraph with TextRuns
-  const paragraphs: Paragraph[] = [];
+  const lines: TextLine[] = [];
 
-  for (let l = 0; l < lines.length; l++) {
-    const line = lines[l];
-    // Sort items horizontally (left to right)
-    line.sort((a, b) => a.x - b.x);
+  for (const rawLine of rawLines) {
+    // Sort horizontally (left to right)
+    rawLine.sort((a, b) => a.x - b.x);
 
-    const textRuns: TextRun[] = [];
-    let prevItemEnd = 0;
+    const lineStartX = rawLine[0].x;
+    const lastItem = rawLine[rawLine.length - 1];
+    const lineEndX = lastItem.x + lastItem.width;
+    const lineWidth = lineEndX - lineStartX;
+    const maxFontSize = Math.max(...rawLine.map((it) => it.fontSize));
+    const baseY = rawLine[0].y;
 
-    for (let i = 0; i < line.length; i++) {
-      const item = line[i];
-
-      // Add a space if there's a horizontal gap between words
-      if (i > 0 && item.x - prevItemEnd > 3.5) {
-        const prevRun = line[i - 1];
-        if (!prevRun.str.endsWith(' ') && !item.str.startsWith(' ')) {
-          textRuns.push(
-            new TextRun({
-              text: ' ',
-              size: Math.max(16, Math.min(72, item.fontSize * 2)),
-              font: item.fontFamily,
-            })
-          );
-        }
-      }
-
-      textRuns.push(
-        new TextRun({
-          text: item.str,
-          bold: item.isBold,
-          italics: item.isItalic,
-          size: Math.max(16, Math.min(72, item.fontSize * 2)), // Half-points (11pt = 22)
-          font: item.fontFamily,
-        })
-      );
-
-      prevItemEnd = item.x + item.width;
-    }
-
-    // Detect if this line has significant vertical spacing before/after
-    const avgFontSize = line.reduce((acc, it) => acc + it.fontSize, 0) / line.length;
-    let spaceAfter = 60; // 3pt default spacing
-    if (l < lines.length - 1) {
-      const nextLine = lines[l + 1];
-      const gap = line[0].y - nextLine[0].y;
-      if (gap > avgFontSize * 1.8) {
-        spaceAfter = 180; // 9pt paragraph spacing
-      }
-    }
-
-    paragraphs.push(
-      new Paragraph({
-        children: textRuns,
-        spacing: {
-          after: spaceAfter,
-          before: 0,
-        },
-      })
-    );
+    lines.push({
+      line: rawLine,
+      lineStartX,
+      lineEndX,
+      lineWidth,
+      topY: baseY + maxFontSize,
+      bottomY: baseY,
+    });
   }
 
-  return { paragraphs, totalChars };
+  return { lines, totalChars };
 }
 
 /**
- * Render a page as a fallback screenshot paragraph (used when page has no text, e.g. scanned doc)
+ * Render a fallback screenshot of the page when there is no extractable text or images
  */
 async function renderPageFallbackParagraph(page: any): Promise<Paragraph | null> {
   try {
@@ -425,11 +446,11 @@ async function renderPageFallbackParagraph(page: any): Promise<Paragraph | null>
     });
     const imgArrayBuffer = await blob.arrayBuffer();
 
-    const maxW = 540;
+    const maxW = 520;
     const ratio = maxW / viewport.width;
 
     return new Paragraph({
-      spacing: { before: 100, after: 100 },
+      spacing: { before: 80, after: 80 },
       children: [
         new ImageRun({
           data: imgArrayBuffer,
@@ -446,18 +467,22 @@ async function renderPageFallbackParagraph(page: any): Promise<Paragraph | null>
   }
 }
 
+type PageBlock =
+  | { type: 'text'; topY: number; bottomY: number; lineData: TextLine }
+  | { type: 'image'; topY: number; bottomY: number; imgData: ExtractedImage };
+
 /**
  * Convert PDF to an EDITABLE Word (.docx) document:
- * Extracts real selectable text with font size, bold, italics, paragraph groupings,
- * and extracts embedded images as separate movable picture objects.
- * If a page is scanned (no text), it falls back to high-res page image so content isn't lost.
+ * Reconstructs layout with accurate indentation, text alignment (center/right/left),
+ * tabular column spacing, proportional vertical gaps, and embeds images at their exact
+ * vertical positions relative to text.
  */
 export async function pdfToDocx(file: File): Promise<Blob> {
   const arrayBuffer = await readFileAsArrayBuffer(file);
   const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   const numPages = pdfDoc.numPages;
 
-  const PT_TO_TWIP = 20; // 1pt = 20 twips
+  const PT_TO_TWIP = 20;
 
   interface DocxSection {
     properties: {
@@ -474,52 +499,189 @@ export async function pdfToDocx(file: File): Promise<Blob> {
   for (let i = 1; i <= numPages; i++) {
     const page = await pdfDoc.getPage(i);
     const viewport = page.getViewport({ scale: 1.0 });
+    const pageWidthPt = viewport.width;
+    const pageHeightPt = viewport.height;
 
-    const pageWidthTwip = Math.round(viewport.width * PT_TO_TWIP);
-    const pageHeightTwip = Math.round(viewport.height * PT_TO_TWIP);
+    const pageWidthTwip = Math.round(pageWidthPt * PT_TO_TWIP);
+    const pageHeightTwip = Math.round(pageHeightPt * PT_TO_TWIP);
 
-    // 1. Extract structured editable paragraphs
-    const { paragraphs, totalChars } = await extractStructuredParagraphs(page);
-
-    // 2. Extract embedded images
+    const { lines, totalChars } = await extractTextLines(page);
     const images = await extractPageImages(page);
 
     const sectionChildren: Paragraph[] = [];
 
-    // Fallback: If page has virtually no text and no images (e.g. scanned document),
-    // render the page as high-res visual image so user doesn't get blank document
+    let baseMarginTwip = 720;
+
+    // Fallback if page is scanned or empty
     if (totalChars < 15 && images.length === 0) {
       const fallbackParagraph = await renderPageFallbackParagraph(page);
       if (fallbackParagraph) {
         sectionChildren.push(fallbackParagraph);
       }
     } else {
-      // Add text paragraphs
-      if (paragraphs.length > 0) {
-        sectionChildren.push(...paragraphs);
-      }
+      // Find minimum left margin of all blocks on the page
+      const leftPositions: number[] = [
+        ...lines.map((l) => l.lineStartX),
+        ...images.map((img) => img.x),
+      ].filter((x) => x > 0);
 
-      // Add extracted embedded images as separate editable Word images
-      for (const img of images) {
-        sectionChildren.push(
-          new Paragraph({
-            spacing: { before: 140, after: 140 },
-            children: [
-              new ImageRun({
-                data: img.data,
-                transformation: {
-                  width: img.width,
-                  height: img.height,
-                },
-                type: 'png',
-              }),
-            ],
-          })
-        );
+      const minLeftPt = leftPositions.length > 0 ? Math.min(...leftPositions) : 36;
+      const baseMarginLeftPt = Math.max(20, Math.min(54, minLeftPt));
+      baseMarginTwip = Math.round(baseMarginLeftPt * PT_TO_TWIP);
+
+      // Combine text lines and images into a single sorted chronological stream
+      const blocks: PageBlock[] = [
+        ...lines.map((l) => ({
+          type: 'text' as const,
+          topY: l.topY,
+          bottomY: l.bottomY,
+          lineData: l,
+        })),
+        ...images.map((img) => ({
+          type: 'image' as const,
+          topY: img.topY,
+          bottomY: img.y,
+          imgData: img,
+        })),
+      ];
+
+      // Sort from top of page to bottom of page (PDF Y: larger Y is higher)
+      blocks.sort((a, b) => b.topY - a.topY);
+
+      let prevBottomY: number | null = null;
+
+      for (let b = 0; b < blocks.length; b++) {
+        const block = blocks[b];
+
+        // Calculate vertical spacing before this block
+        let spaceBefore = 40; // 2pt minimal spacing
+        if (prevBottomY !== null) {
+          const gapPt = prevBottomY - block.topY;
+          if (gapPt > 3) {
+            // Convert gap in pt to twips, capped at 1200 twips (60pt)
+            spaceBefore = Math.min(1200, Math.max(40, Math.round(gapPt * PT_TO_TWIP)));
+          }
+        }
+        prevBottomY = block.bottomY;
+
+        if (block.type === 'text') {
+          const l = block.lineData;
+          const line = l.line;
+
+          // Determine horizontal alignment
+          let alignment: (typeof AlignmentType)[keyof typeof AlignmentType] = AlignmentType.LEFT;
+          let indentLeftTwips = 0;
+
+          const lineCenterX = l.lineStartX + l.lineWidth / 2;
+          const isCentered =
+            Math.abs(lineCenterX - pageWidthPt / 2) < 28 && l.lineWidth < pageWidthPt * 0.75;
+          const isRightAligned =
+            pageWidthPt - l.lineEndX < 65 && l.lineStartX > pageWidthPt * 0.35;
+
+          if (isCentered) {
+            alignment = AlignmentType.CENTER;
+          } else if (isRightAligned) {
+            alignment = AlignmentType.RIGHT;
+          } else {
+            const indentPt = Math.max(0, l.lineStartX - baseMarginLeftPt);
+            if (indentPt > 10) {
+              indentLeftTwips = Math.round(indentPt * PT_TO_TWIP);
+            }
+          }
+
+          // Build TextRuns with inter-word and tabular gap detection
+          const textRuns: TextRun[] = [];
+          let prevItemEnd = line[0].x;
+
+          for (let k = 0; k < line.length; k++) {
+            const item = line[k];
+            const gap = item.x - prevItemEnd;
+
+            if (k > 0) {
+              if (gap > 28) {
+                // Large gap indicates table column or tab separator
+                textRuns.push(new TextRun({ text: '\t' }));
+              } else if (gap > 3.5) {
+                const prevRun = line[k - 1];
+                if (!prevRun.str.endsWith(' ') && !item.str.startsWith(' ')) {
+                  textRuns.push(
+                    new TextRun({
+                      text: ' ',
+                      size: Math.max(16, Math.min(72, item.fontSize * 2)),
+                      font: item.fontFamily,
+                    })
+                  );
+                }
+              }
+            }
+
+            textRuns.push(
+              new TextRun({
+                text: item.str,
+                bold: item.isBold,
+                italics: item.isItalic,
+                size: Math.max(16, Math.min(72, item.fontSize * 2)),
+                font: item.fontFamily,
+              })
+            );
+
+            prevItemEnd = item.x + item.width;
+          }
+
+          sectionChildren.push(
+            new Paragraph({
+              alignment,
+              indent: indentLeftTwips > 0 ? { left: indentLeftTwips } : undefined,
+              spacing: {
+                before: spaceBefore,
+                after: 40,
+              },
+              children: textRuns,
+            })
+          );
+        } else if (block.type === 'image') {
+          const img = block.imgData;
+
+          let imgAlign: (typeof AlignmentType)[keyof typeof AlignmentType] = AlignmentType.LEFT;
+          let imgIndentTwips = 0;
+
+          const imgCenterX = img.x + img.w / 2;
+          if (Math.abs(imgCenterX - pageWidthPt / 2) < 35) {
+            imgAlign = AlignmentType.CENTER;
+          } else if (pageWidthPt - (img.x + img.w) < 65) {
+            imgAlign = AlignmentType.RIGHT;
+          } else {
+            const indentPt = Math.max(0, img.x - baseMarginLeftPt);
+            if (indentPt > 10) {
+              imgIndentTwips = Math.round(indentPt * PT_TO_TWIP);
+            }
+          }
+
+          sectionChildren.push(
+            new Paragraph({
+              alignment: imgAlign,
+              indent: imgIndentTwips > 0 ? { left: imgIndentTwips } : undefined,
+              spacing: {
+                before: spaceBefore,
+                after: 60,
+              },
+              children: [
+                new ImageRun({
+                  data: img.data,
+                  transformation: {
+                    width: img.displayWidth,
+                    height: img.displayHeight,
+                  },
+                  type: 'png',
+                }),
+              ],
+            })
+          );
+        }
       }
     }
 
-    // Standard Word page margins (0.75 inch = 1080 twips)
+    // Standardized section page settings based on original document dimensions
     sections.push({
       properties: {
         page: {
@@ -528,10 +690,10 @@ export async function pdfToDocx(file: File): Promise<Blob> {
             height: pageHeightTwip,
           },
           margin: {
-            top: 1080,
-            bottom: 1080,
-            left: 1080,
-            right: 1080,
+            top: 720, // 0.5 inch (36pt)
+            bottom: 720,
+            left: baseMarginTwip,
+            right: baseMarginTwip,
           },
         },
       },
