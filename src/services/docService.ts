@@ -1,5 +1,5 @@
 import mammoth from 'mammoth';
-import { Document, Packer, Paragraph, TextRun, ImageRun, PageBreak } from 'docx';
+import { Document, Packer, Paragraph, TextRun, ImageRun } from 'docx';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -123,93 +123,104 @@ export async function textToDocx(text: string): Promise<Blob> {
 
 /**
  * Convert PDF to DOCX by rendering each page as a high-resolution image
- * and embedding into Word document. Preserves visual layout, images, diagrams.
+ * and embedding into Word document. Each page becomes its own section with
+ * exact matching dimensions (zero margins) so output is pixel-perfect.
  */
 export async function pdfToDocx(file: File): Promise<Blob> {
   const arrayBuffer = await readFileAsArrayBuffer(file);
   const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   const numPages = pdfDoc.numPages;
 
-  // A4 dimensions in EMU (English Metric Units) for docx
-  // 1 inch = 914400 EMU, A4 = 210mm x 297mm = 8.27in x 11.69in
-  const PAGE_WIDTH_EMU = Math.round(8.27 * 914400);
-  const PAGE_HEIGHT_EMU = Math.round(11.69 * 914400);
-  // Leave ~1 inch margin on each side
-  const CONTENT_WIDTH_EMU = Math.round(6.27 * 914400);
+  // 1 PDF point = 1/72 inch, 1 inch = 914400 EMU
+  // docx page size uses twips (1 inch = 1440 twips)
+  const PT_TO_TWIP = 20; // 1pt = 20 twips
+  const RENDER_SCALE = 2.0; // High-res render for crisp images
 
-  const children: Paragraph[] = [];
+  interface PageSection {
+    properties: {
+      page: {
+        size: { width: number; height: number; orientation?: any };
+        margin: { top: number; bottom: number; left: number; right: number };
+      };
+    };
+    children: Paragraph[];
+  }
+
+  const sections: PageSection[] = [];
 
   for (let i = 1; i <= numPages; i++) {
     const page = await pdfDoc.getPage(i);
-    const viewport = page.getViewport({ scale: 2.0 }); // High-res render
 
+    // Get original page size in PDF points (1/72 inch)
+    const baseViewport = page.getViewport({ scale: 1.0 });
+    const pageWidthPt = baseViewport.width;
+    const pageHeightPt = baseViewport.height;
+
+    // Render at high resolution
+    const renderViewport = page.getViewport({ scale: RENDER_SCALE });
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
     if (!context) continue;
 
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
+    canvas.width = renderViewport.width;
+    canvas.height = renderViewport.height;
 
     await page.render({
       canvasContext: context,
-      viewport: viewport,
+      viewport: renderViewport,
       canvas: canvas,
     } as any).promise;
 
-    // Convert canvas to PNG blob then to ArrayBuffer
+    // Convert canvas to PNG ArrayBuffer
     const blob: Blob = await new Promise((resolve) => {
       canvas.toBlob((b) => resolve(b!), 'image/png');
     });
     const imgArrayBuffer = await blob.arrayBuffer();
 
-    // Calculate image dimensions maintaining aspect ratio
-    const aspectRatio = viewport.height / viewport.width;
-    const imgWidthEmu = CONTENT_WIDTH_EMU;
-    const imgHeightEmu = Math.round(imgWidthEmu * aspectRatio);
+    // Convert PDF points to twips for DOCX page size
+    const pageWidthTwip = Math.round(pageWidthPt * PT_TO_TWIP);
+    const pageHeightTwip = Math.round(pageHeightPt * PT_TO_TWIP);
 
-    const paragraphChildren: (ImageRun | PageBreak)[] = [
-      new ImageRun({
-        data: imgArrayBuffer,
-        transformation: {
-          width: Math.round(imgWidthEmu / 9525), // EMU to pixels (approx for docx)
-          height: Math.round(imgHeightEmu / 9525),
+    // Image dimensions in the docx: fill entire page (same as page size in points)
+    // docx ImageRun transformation uses points directly
+    const imgWidthPx = Math.round(pageWidthPt * (96 / 72)); // Convert pt to px at 96 DPI
+    const imgHeightPx = Math.round(pageHeightPt * (96 / 72));
+
+    sections.push({
+      properties: {
+        page: {
+          size: {
+            width: pageWidthTwip,
+            height: pageHeightTwip,
+          },
+          margin: {
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+          },
         },
-        type: 'png',
-      }),
-    ];
-
-    // Add page break after every page except the last
-    if (i < numPages) {
-      paragraphChildren.push(new PageBreak());
-    }
-
-    children.push(
-      new Paragraph({
-        children: paragraphChildren,
-      })
-    );
+      },
+      children: [
+        new Paragraph({
+          spacing: { before: 0, after: 0 },
+          children: [
+            new ImageRun({
+              data: imgArrayBuffer,
+              transformation: {
+                width: imgWidthPx,
+                height: imgHeightPx,
+              },
+              type: 'png',
+            }),
+          ],
+        }),
+      ],
+    });
   }
 
   const doc = new Document({
-    sections: [
-      {
-        properties: {
-          page: {
-            size: {
-              width: PAGE_WIDTH_EMU,
-              height: PAGE_HEIGHT_EMU,
-            },
-            margin: {
-              top: 720, // 0.5 inch in twips
-              bottom: 720,
-              left: 720,
-              right: 720,
-            },
-          },
-        },
-        children,
-      },
-    ],
+    sections: sections as any,
   });
 
   return await Packer.toBlob(doc);
