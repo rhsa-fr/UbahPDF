@@ -1,5 +1,5 @@
 import mammoth from 'mammoth';
-import { Document, Packer, Paragraph, TextRun, ImageRun, AlignmentType } from 'docx';
+import { Document, Packer, Paragraph, TextRun, ImageRun, AlignmentType, BorderStyle } from 'docx';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -278,8 +278,8 @@ async function extractPageImages(
           }
         }
 
-        // Method 2 (Guaranteed Fallback): Crop region directly from the high-res rendered canvas
-        if (!arrayBuf && pageCanvas) {
+        // Method 2 (Guaranteed High-Res Fallback): Crop region directly from the high-res rendered canvas
+        if ((!arrayBuf || (imgObj && (imgObj.width || 0) < pos.w * 1.2)) && pageCanvas) {
           const cropX = Math.max(0, Math.round(pos.x * renderScale));
           const cropY = Math.max(0, Math.round((pageHeightPt - (pos.y + pos.h)) * renderScale));
           const cropW = Math.min(pageCanvas.width - cropX, Math.round(pos.w * renderScale));
@@ -300,7 +300,7 @@ async function extractPageImages(
 
         if (!arrayBuf) continue;
 
-        const maxWidthPx = 520;
+        const maxWidthPx = 640;
         if (imgWidth > maxWidthPx) {
           const ratio = maxWidthPx / imgWidth;
           imgWidth = maxWidthPx;
@@ -353,44 +353,127 @@ interface TextLine {
 }
 
 /**
- * Sample text color from rendered canvas pixels at text position.
- * Only returns a hex color if the text is genuinely chromatic (colored: blue, red, green, etc.).
- * For standard black, charcoal, or neutral dark text, returns undefined so Word renders it in standard black.
+ * Detect if there is a horizontal vector / divider line across the page in a given Y band (in pt)
  */
-function sampleTextColor(
+function detectHorizontalLine(
   pixels: Uint8ClampedArray,
   canvasWidth: number,
   canvasHeight: number,
-  centerX: number,
-  centerY: number
-): string | undefined {
-  let bestChromaticHex: string | undefined = undefined;
-  let maxSaturation = 0;
+  topY_pt: number,
+  bottomY_pt: number,
+  pageHeightPt: number,
+  renderScale: number
+): { exists: boolean; colorHex?: string } {
+  // Convert PDF Y range to Canvas Y range (canvas Y = (pageHeightPt - y) * renderScale)
+  const yStart = Math.max(0, Math.round((pageHeightPt - topY_pt) * renderScale));
+  const yEnd = Math.min(canvasHeight - 1, Math.round((pageHeightPt - bottomY_pt) * renderScale));
 
-  for (let dy = -3; dy <= 3; dy++) {
-    for (let dx = -2; dx <= 6; dx++) {
-      const px = Math.min(canvasWidth - 1, Math.max(0, centerX + dx));
-      const py = Math.min(canvasHeight - 1, Math.max(0, centerY + dy));
+  if (yEnd - yStart < 2) return { exists: false };
+
+  // Sample horizontal line in middle 60% of page
+  const xStart = Math.round(canvasWidth * 0.2);
+  const xEnd = Math.round(canvasWidth * 0.8);
+  const totalSamples = 30;
+  const step = Math.max(1, Math.floor((xEnd - xStart) / totalSamples));
+
+  for (let py = yStart; py <= yEnd; py++) {
+    let nonWhiteCount = 0;
+    let chromaticHex: string | undefined = undefined;
+    let maxSaturation = 0;
+
+    for (let px = xStart; px <= xEnd; px += step) {
       const idx = (py * canvasWidth + px) * 4;
-
       const r = pixels[idx];
       const g = pixels[idx + 1];
       const b = pixels[idx + 2];
       const a = pixels[idx + 3];
 
       if (a < 100) continue;
-
-      // Color difference (chroma / saturation)
-      const diff = Math.max(Math.abs(r - g), Math.abs(r - b), Math.abs(g - b));
       const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+      if (lum < 235) {
+        nonWhiteCount++;
+        const diff = Math.max(Math.abs(r - g), Math.abs(r - b), Math.abs(g - b));
+        if (diff > maxSaturation) {
+          maxSaturation = diff;
+          chromaticHex = [r, g, b]
+            .map((c) => c.toString(16).padStart(2, '0'))
+            .join('')
+            .toUpperCase();
+        }
+      }
+    }
 
-      // Only consider genuine colored fonts (diff >= 25) that are not washed-out/white (lum < 200)
-      if (diff >= 25 && lum < 200 && diff > maxSaturation) {
-        maxSaturation = diff;
-        bestChromaticHex = [r, g, b]
-          .map((c) => c.toString(16).padStart(2, '0'))
-          .join('')
-          .toUpperCase();
+    // If >65% of sampled horizontal points along this single row are non-white, it's a horizontal rule!
+    if (nonWhiteCount / totalSamples >= 0.65) {
+      return {
+        exists: true,
+        colorHex: chromaticHex || 'B0C4DE',
+      };
+    }
+  }
+
+  return { exists: false };
+}
+
+/**
+ * Sample text color from rendered canvas pixels across the text run.
+ * Only returns a hex color if the text is genuinely chromatic (colored: blue, orange, purple, etc.).
+ * For standard black, charcoal, or neutral dark text, returns undefined so Word renders it in standard black.
+ */
+function sampleTextColor(
+  pixels: Uint8ClampedArray,
+  canvasWidth: number,
+  canvasHeight: number,
+  x: number,
+  y: number,
+  width: number,
+  fontSize: number,
+  pageHeightPt: number,
+  renderScale: number
+): string | undefined {
+  let bestChromaticHex: string | undefined = undefined;
+  let maxSaturation = 0;
+
+  // Determine vertical center of the text run in canvas coordinates
+  const cy = Math.round((pageHeightPt - y - fontSize * 0.45) * renderScale);
+  const verticalSpread = Math.max(2, Math.round(fontSize * renderScale * 0.35));
+
+  // Sample points horizontally across the word/run (e.g. 15%, 35%, 50%, 65%, 85%)
+  const xSamples: number[] = [];
+  if (width <= 12) {
+    xSamples.push(Math.round((x + width * 0.5) * renderScale));
+  } else {
+    for (const fraction of [0.15, 0.35, 0.5, 0.65, 0.85]) {
+      xSamples.push(Math.round((x + width * fraction) * renderScale));
+    }
+  }
+
+  for (const sx of xSamples) {
+    for (let dy = -verticalSpread; dy <= verticalSpread; dy += 2) {
+      for (let dx = -3; dx <= 3; dx += 2) {
+        const px = Math.min(canvasWidth - 1, Math.max(0, sx + dx));
+        const py = Math.min(canvasHeight - 1, Math.max(0, cy + dy));
+        const idx = (py * canvasWidth + px) * 4;
+
+        const r = pixels[idx];
+        const g = pixels[idx + 1];
+        const b = pixels[idx + 2];
+        const a = pixels[idx + 3];
+
+        if (a < 100) continue;
+
+        // Color difference (chroma / saturation)
+        const diff = Math.max(Math.abs(r - g), Math.abs(r - b), Math.abs(g - b));
+        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+
+        // Only consider genuine colored fonts (diff >= 22) that are not washed-out/white (lum < 215)
+        if (diff >= 22 && lum < 215 && diff > maxSaturation) {
+          maxSaturation = diff;
+          bestChromaticHex = [r, g, b]
+            .map((c) => c.toString(16).padStart(2, '0'))
+            .join('')
+            .toUpperCase();
+        }
       }
     }
   }
@@ -425,27 +508,73 @@ async function extractTextLines(
     const y = transform[5] || 0;
     const fontSize = Math.round(Math.abs(transform[3]) || item.height || 11);
 
+    // Retrieve underlying font object for accurate styling & true font family
+    let realFontName = '';
+    let fontObj: any = null;
+    try {
+      if (page.commonObjs?.has?.(item.fontName)) {
+        fontObj = page.commonObjs.get(item.fontName);
+      } else if (page.objs?.has?.(item.fontName)) {
+        fontObj = page.objs.get(item.fontName);
+      }
+    } catch {
+      // ignore
+    }
+    if (fontObj) {
+      realFontName = (fontObj.name || fontObj.fallbackName || '').toLowerCase();
+    }
+
     const fontStyle = textContent.styles?.[item.fontName] || {};
     const fontName = (item.fontName || '').toLowerCase();
     const family = (fontStyle.fontFamily || 'Arial').toLowerCase();
 
     const isBold =
+      fontObj?.bold === true ||
+      (fontObj?.weight && Number(fontObj.weight) >= 600) ||
+      realFontName.includes('bold') ||
+      realFontName.includes('black') ||
+      realFontName.includes('heavy') ||
+      realFontName.includes('bld') ||
+      realFontName.includes('semibold') ||
+      realFontName.includes('medium') ||
       fontName.includes('bold') ||
       fontName.includes('black') ||
-      fontName.includes('bld') ||
-      fontName.includes('heavy') ||
-      family.includes('bold');
+      family.includes('bold') ||
+      fontSize >= 15 ||
+      (/^\d+\.\s+[A-Z]/.test(str) && fontSize >= 11);
 
     const isItalic =
+      fontObj?.italic === true ||
+      realFontName.includes('italic') ||
+      realFontName.includes('oblique') ||
       fontName.includes('italic') ||
       fontName.includes('oblique') ||
       family.includes('italic');
 
+    let cleanFamily = 'Calibri';
+    const rawFamily = fontObj?.name || fontObj?.fallbackName || fontStyle.fontFamily || '';
+    if (rawFamily) {
+      const sanitized = rawFamily
+        .replace(/[-_]?(Bold|Italic|Oblique|Regular|MT|PS|PSMT)$/i, '')
+        .trim();
+      if (sanitized && !['sans-serif', 'serif', 'monospace'].includes(sanitized.toLowerCase())) {
+        cleanFamily = sanitized;
+      }
+    }
+
     let textColor: string | undefined = undefined;
     if (pagePixels && canvasWidth > 0 && canvasHeight > 0) {
-      const cx = Math.round(x * renderScale);
-      const cy = Math.round((pageHeightPt - y) * renderScale - fontSize * renderScale * 0.45);
-      textColor = sampleTextColor(pagePixels, canvasWidth, canvasHeight, cx, cy);
+      textColor = sampleTextColor(
+        pagePixels,
+        canvasWidth,
+        canvasHeight,
+        x,
+        y,
+        item.width || fontSize * str.length * 0.5,
+        fontSize,
+        pageHeightPt,
+        renderScale
+      );
     }
 
     items.push({
@@ -458,7 +587,7 @@ async function extractTextLines(
       isBold,
       isItalic,
       color: textColor,
-      fontFamily: fontStyle.fontFamily || 'Arial',
+      fontFamily: cleanFamily,
     });
   }
 
@@ -653,15 +782,38 @@ export async function pdfToDocx(file: File): Promise<Blob> {
         const block = blocks[b];
 
         // Calculate vertical spacing before this block
-        let spaceBefore = 40; // 2pt minimal spacing
+        let spaceBefore = 60; // Minimum 3pt spacing to avoid overlapping text
         if (prevBottomY !== null) {
           const gapPt = prevBottomY - block.topY;
-          if (gapPt > 3) {
+          if (gapPt > 2) {
             // Convert gap in pt to twips, capped at 1200 twips (60pt)
-            spaceBefore = Math.min(1200, Math.max(40, Math.round(gapPt * PT_TO_TWIP)));
+            spaceBefore = Math.min(1200, Math.max(60, Math.round(gapPt * PT_TO_TWIP)));
           }
         }
         prevBottomY = block.bottomY;
+
+        // Check if there is a horizontal vector divider line between this block and the next block
+        let bottomBorder: any = undefined;
+        if (pagePixels && b < blocks.length - 1) {
+          const nextTopY = blocks[b + 1].topY;
+          const lineCheck = detectHorizontalLine(
+            pagePixels,
+            pageCanvas.width,
+            pageCanvas.height,
+            block.bottomY,
+            nextTopY,
+            pageHeightPt,
+            RENDER_SCALE
+          );
+          if (lineCheck.exists) {
+            bottomBorder = {
+              color: lineCheck.colorHex || 'B0C4DE',
+              size: 6,
+              space: 8,
+              value: BorderStyle.SINGLE,
+            };
+          }
+        }
 
         if (block.type === 'text') {
           const l = block.lineData;
@@ -694,29 +846,36 @@ export async function pdfToDocx(file: File): Promise<Blob> {
 
           for (let k = 0; k < line.length; k++) {
             const item = line[k];
+            let itemText = item.str;
             const gap = item.x - prevItemEnd;
 
             if (k > 0) {
               if (gap > 28) {
                 // Large gap indicates table column or tab separator
                 textRuns.push(new TextRun({ text: '\t' }));
-              } else if (gap > 3.5) {
-                const prevRun = line[k - 1];
-                if (!prevRun.str.endsWith(' ') && !item.str.startsWith(' ')) {
-                  textRuns.push(
-                    new TextRun({
-                      text: ' ',
-                      size: Math.max(16, Math.min(72, item.fontSize * 2)),
-                      font: item.fontFamily,
-                    })
-                  );
+              } else {
+                const prevItem = line[k - 1];
+                const prevEndsWithSpace = prevItem.str.endsWith(' ');
+                const currStartsWithSpace = itemText.startsWith(' ');
+
+                if (!prevEndsWithSpace && !currStartsWithSpace) {
+                  // If there is any positive gap, or adjacent word characters, ensure space separation!
+                  const isWordBoundary =
+                    gap > 0.5 ||
+                    (gap >= -2 &&
+                      /[a-zA-Z0-9(]/.test(itemText.charAt(0)) &&
+                      /[a-zA-Z0-9.,):;]/.test(prevItem.str.charAt(prevItem.str.length - 1)));
+
+                  if (isWordBoundary) {
+                    itemText = ' ' + itemText;
+                  }
                 }
               }
             }
 
             textRuns.push(
               new TextRun({
-                text: item.str,
+                text: itemText,
                 bold: item.isBold,
                 italics: item.isItalic,
                 color: item.color,
@@ -732,9 +891,11 @@ export async function pdfToDocx(file: File): Promise<Blob> {
             new Paragraph({
               alignment,
               indent: indentLeftTwips > 0 ? { left: indentLeftTwips } : undefined,
+              border: bottomBorder ? { bottom: bottomBorder } : undefined,
               spacing: {
                 before: spaceBefore,
-                after: 40,
+                after: bottomBorder ? 120 : 60,
+                line: 260,
               },
               children: textRuns,
             })
@@ -745,11 +906,16 @@ export async function pdfToDocx(file: File): Promise<Blob> {
           let imgAlign: (typeof AlignmentType)[keyof typeof AlignmentType] = AlignmentType.LEFT;
           let imgIndentTwips = 0;
 
+          const isWideDiagram = img.w > pageWidthPt * 0.55;
           const imgCenterX = img.x + img.w / 2;
-          if (Math.abs(imgCenterX - pageWidthPt / 2) < 35) {
+          const isCentered = Math.abs(imgCenterX - pageWidthPt / 2) < 45 || isWideDiagram;
+
+          if (isCentered) {
             imgAlign = AlignmentType.CENTER;
+            imgIndentTwips = 0;
           } else if (pageWidthPt - (img.x + img.w) < 65) {
             imgAlign = AlignmentType.RIGHT;
+            imgIndentTwips = 0;
           } else {
             const indentPt = Math.max(0, img.x - baseMarginLeftPt);
             if (indentPt > 10) {
@@ -763,7 +929,7 @@ export async function pdfToDocx(file: File): Promise<Blob> {
               indent: imgIndentTwips > 0 ? { left: imgIndentTwips } : undefined,
               spacing: {
                 before: spaceBefore,
-                after: 60,
+                after: 80,
               },
               children: [
                 new ImageRun({
