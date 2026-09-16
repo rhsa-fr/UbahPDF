@@ -148,8 +148,14 @@ interface ExtractedImage {
 
 /**
  * Extract embedded images with their exact coordinates from a PDF page
+ * Uses dual-strategy: PDF.js object lookup + high-res canvas cropping fallback
  */
-async function extractPageImages(page: any): Promise<ExtractedImage[]> {
+async function extractPageImages(
+  page: any,
+  pageCanvas: HTMLCanvasElement | null,
+  renderScale: number,
+  pageHeightPt: number
+): Promise<ExtractedImage[]> {
   const images: ExtractedImage[] = [];
   try {
     const opList = await page.getOperatorList();
@@ -197,86 +203,101 @@ async function extractPageImages(page: any): Promise<ExtractedImage[]> {
 
     for (const pos of imagePositions) {
       try {
-        const imgObj = await new Promise<any>((resolve) => {
-          let resolved = false;
-          try {
-            page.objs.get(pos.ref, (obj: any) => {
-              if (!resolved) {
-                resolved = true;
-                resolve(obj);
+        let arrayBuf: ArrayBuffer | null = null;
+        let imgWidth = Math.round(pos.w * (96 / 72));
+        let imgHeight = Math.round(pos.h * (96 / 72));
+
+        // Method 1: Try getting object from PDF.js cache
+        let imgObj: any = null;
+        try {
+          if (pos.ref.startsWith('g_')) {
+            imgObj = page.commonObjs.get(pos.ref);
+          } else {
+            imgObj = page.objs.get(pos.ref);
+          }
+        } catch {
+          // Object may not be in synchronous cache; fall back to canvas crop
+        }
+
+        if (imgObj) {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+
+          if (imgObj.bitmap && ctx) {
+            canvas.width = imgObj.width || imgObj.bitmap.width;
+            canvas.height = imgObj.height || imgObj.bitmap.height;
+            ctx.drawImage(imgObj.bitmap, 0, 0);
+            const blob: Blob = await new Promise((res) => canvas.toBlob((b) => res(b!), 'image/png'));
+            arrayBuf = await blob.arrayBuffer();
+          } else if (imgObj.data && imgObj.width && imgObj.height && ctx) {
+            canvas.width = imgObj.width;
+            canvas.height = imgObj.height;
+            if (imgObj.data.length === imgObj.width * imgObj.height * 4) {
+              const imgData = new ImageData(
+                new Uint8ClampedArray(imgObj.data),
+                imgObj.width,
+                imgObj.height
+              );
+              ctx.putImageData(imgData, 0, 0);
+            } else if (imgObj.data.length === imgObj.width * imgObj.height * 3) {
+              const rgba = new Uint8ClampedArray(imgObj.width * imgObj.height * 4);
+              let src = 0;
+              let dst = 0;
+              for (let p = 0; p < imgObj.width * imgObj.height; p++) {
+                rgba[dst++] = imgObj.data[src++];
+                rgba[dst++] = imgObj.data[src++];
+                rgba[dst++] = imgObj.data[src++];
+                rgba[dst++] = 255;
               }
-            });
-          } catch {
-            try {
-              page.commonObjs.get(pos.ref, (obj: any) => {
-                if (!resolved) {
-                  resolved = true;
-                  resolve(obj);
-                }
-              });
-            } catch {
-              resolve(null);
+              const imgData = new ImageData(rgba, imgObj.width, imgObj.height);
+              ctx.putImageData(imgData, 0, 0);
             }
+            const blob: Blob = await new Promise((res) => canvas.toBlob((b) => res(b!), 'image/png'));
+            arrayBuf = await blob.arrayBuffer();
+          } else if (ctx && (imgObj instanceof ImageBitmap || (typeof HTMLImageElement !== 'undefined' && imgObj instanceof HTMLImageElement))) {
+            canvas.width = imgObj.width;
+            canvas.height = imgObj.height;
+            ctx.drawImage(imgObj, 0, 0);
+            const blob: Blob = await new Promise((res) => canvas.toBlob((b) => res(b!), 'image/png'));
+            arrayBuf = await blob.arrayBuffer();
           }
-          setTimeout(() => {
-            if (!resolved) {
-              resolved = true;
-              resolve(null);
-            }
-          }, 1500);
-        });
-
-        if (!imgObj || !imgObj.data || !imgObj.width || !imgObj.height) continue;
-
-        const canvas = document.createElement('canvas');
-        canvas.width = imgObj.width;
-        canvas.height = imgObj.height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) continue;
-
-        if (imgObj.data.length === imgObj.width * imgObj.height * 4) {
-          const imgData = new ImageData(
-            new Uint8ClampedArray(imgObj.data),
-            imgObj.width,
-            imgObj.height
-          );
-          ctx.putImageData(imgData, 0, 0);
-        } else if (imgObj.data.length === imgObj.width * imgObj.height * 3) {
-          const rgba = new Uint8ClampedArray(imgObj.width * imgObj.height * 4);
-          let src = 0;
-          let dst = 0;
-          for (let p = 0; p < imgObj.width * imgObj.height; p++) {
-            rgba[dst++] = imgObj.data[src++];
-            rgba[dst++] = imgObj.data[src++];
-            rgba[dst++] = imgObj.data[src++];
-            rgba[dst++] = 255;
-          }
-          const imgData = new ImageData(rgba, imgObj.width, imgObj.height);
-          ctx.putImageData(imgData, 0, 0);
-        } else {
-          continue;
         }
 
-        const blob: Blob = await new Promise((resolve) => {
-          canvas.toBlob((b) => resolve(b!), 'image/png');
-        });
-        const arrayBuf = await blob.arrayBuffer();
+        // Method 2 (Guaranteed Fallback): Crop region directly from the high-res rendered canvas
+        if (!arrayBuf && pageCanvas) {
+          const cropX = Math.max(0, Math.round(pos.x * renderScale));
+          const cropY = Math.max(0, Math.round((pageHeightPt - (pos.y + pos.h)) * renderScale));
+          const cropW = Math.min(pageCanvas.width - cropX, Math.round(pos.w * renderScale));
+          const cropH = Math.min(pageCanvas.height - cropY, Math.round(pos.h * renderScale));
 
-        // Fit display size within page margins (max ~520px)
+          if (cropW > 8 && cropH > 8) {
+            const cropCanvas = document.createElement('canvas');
+            cropCanvas.width = cropW;
+            cropCanvas.height = cropH;
+            const cropCtx = cropCanvas.getContext('2d');
+            if (cropCtx) {
+              cropCtx.drawImage(pageCanvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+              const blob: Blob = await new Promise((res) => cropCanvas.toBlob((b) => res(b!), 'image/png'));
+              arrayBuf = await blob.arrayBuffer();
+            }
+          }
+        }
+
+        if (!arrayBuf) continue;
+
         const maxWidthPx = 520;
-        let displayWidth = Math.round(pos.w * (96 / 72));
-        let displayHeight = Math.round(pos.h * (96 / 72));
-        if (displayWidth > maxWidthPx) {
-          const ratio = maxWidthPx / displayWidth;
-          displayWidth = maxWidthPx;
-          displayHeight = Math.round(displayHeight * ratio);
+        if (imgWidth > maxWidthPx) {
+          const ratio = maxWidthPx / imgWidth;
+          imgWidth = maxWidthPx;
+          imgHeight = Math.round(imgHeight * ratio);
         }
-        if (displayWidth < 10 || displayHeight < 10) continue;
+
+        if (imgWidth < 8 || imgHeight < 8) continue;
 
         images.push({
           data: arrayBuf,
-          displayWidth,
-          displayHeight,
+          displayWidth: imgWidth,
+          displayHeight: imgHeight,
           x: pos.x,
           y: pos.y,
           w: pos.w,
@@ -284,11 +305,11 @@ async function extractPageImages(page: any): Promise<ExtractedImage[]> {
           topY: pos.y + pos.h,
         });
       } catch {
-        // Ignore single image failure
+        // Skip individual failure
       }
     }
   } catch {
-    // Ignore operator list failure
+    // Skip operator list failure
   }
 
   return images;
@@ -303,6 +324,7 @@ interface TextChunk {
   fontSize: number;
   isBold: boolean;
   isItalic: boolean;
+  color?: string;
   fontFamily: string;
 }
 
@@ -316,10 +338,73 @@ interface TextLine {
 }
 
 /**
- * Extract structured text lines with positioning, font properties, and line groupings
+ * Sample text color from rendered canvas pixels at text position
+ */
+function sampleTextColor(
+  pixels: Uint8ClampedArray,
+  canvasWidth: number,
+  canvasHeight: number,
+  centerX: number,
+  centerY: number
+): string | undefined {
+  let minLum = 255;
+  let maxLum = 0;
+  let darkestHex: string | undefined = undefined;
+  let lightestHex: string | undefined = undefined;
+
+  for (let dy = -3; dy <= 3; dy++) {
+    for (let dx = -2; dx <= 6; dx++) {
+      const px = Math.min(canvasWidth - 1, Math.max(0, centerX + dx));
+      const py = Math.min(canvasHeight - 1, Math.max(0, centerY + dy));
+      const idx = (py * canvasWidth + px) * 4;
+
+      const r = pixels[idx];
+      const g = pixels[idx + 1];
+      const b = pixels[idx + 2];
+      const a = pixels[idx + 3];
+
+      if (a < 80) continue;
+
+      const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+      const hex = [r, g, b]
+        .map((c) => c.toString(16).padStart(2, '0'))
+        .join('')
+        .toUpperCase();
+
+      if (lum < minLum) {
+        minLum = lum;
+        darkestHex = hex;
+      }
+      if (lum > maxLum) {
+        maxLum = lum;
+        lightestHex = hex;
+      }
+    }
+  }
+
+  // Colored text on light background (ignore pure black lum < 38)
+  if (minLum < 200 && minLum >= 38 && darkestHex) {
+    return darkestHex;
+  }
+
+  // Inverted text on dark background
+  if (minLum < 60 && maxLum > 180 && lightestHex) {
+    return lightestHex;
+  }
+
+  return undefined;
+}
+
+/**
+ * Extract structured text lines with positioning, exact font color sampling, and line groupings
  */
 async function extractTextLines(
-  page: any
+  page: any,
+  pagePixels: Uint8ClampedArray | null,
+  canvasWidth: number,
+  canvasHeight: number,
+  renderScale: number,
+  pageHeightPt: number
 ): Promise<{ lines: TextLine[]; totalChars: number }> {
   const textContent = await page.getTextContent({ includeMarkedContent: false });
   const items: TextChunk[] = [];
@@ -353,6 +438,13 @@ async function extractTextLines(
       fontName.includes('oblique') ||
       family.includes('italic');
 
+    let textColor: string | undefined = undefined;
+    if (pagePixels && canvasWidth > 0 && canvasHeight > 0) {
+      const cx = Math.round(x * renderScale);
+      const cy = Math.round((pageHeightPt - y) * renderScale - fontSize * renderScale * 0.45);
+      textColor = sampleTextColor(pagePixels, canvasWidth, canvasHeight, cx, cy);
+    }
+
     items.push({
       str,
       x,
@@ -362,6 +454,7 @@ async function extractTextLines(
       fontSize,
       isBold,
       isItalic,
+      color: textColor,
       fontFamily: fontStyle.fontFamily || 'Arial',
     });
   }
@@ -423,50 +516,6 @@ async function extractTextLines(
   return { lines, totalChars };
 }
 
-/**
- * Render a fallback screenshot of the page when there is no extractable text or images
- */
-async function renderPageFallbackParagraph(page: any): Promise<Paragraph | null> {
-  try {
-    const viewport = page.getViewport({ scale: 2.0 });
-    const canvas = document.createElement('canvas');
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
-
-    await page.render({
-      canvasContext: ctx,
-      viewport,
-      canvas,
-    } as any).promise;
-
-    const blob: Blob = await new Promise((resolve) => {
-      canvas.toBlob((b) => resolve(b!), 'image/png');
-    });
-    const imgArrayBuffer = await blob.arrayBuffer();
-
-    const maxW = 520;
-    const ratio = maxW / viewport.width;
-
-    return new Paragraph({
-      spacing: { before: 80, after: 80 },
-      children: [
-        new ImageRun({
-          data: imgArrayBuffer,
-          transformation: {
-            width: maxW,
-            height: Math.round(viewport.height * ratio),
-          },
-          type: 'png',
-        }),
-      ],
-    });
-  } catch {
-    return null;
-  }
-}
-
 type PageBlock =
   | { type: 'text'; topY: number; bottomY: number; lineData: TextLine }
   | { type: 'image'; topY: number; bottomY: number; imgData: ExtractedImage };
@@ -501,12 +550,41 @@ export async function pdfToDocx(file: File): Promise<Blob> {
     const viewport = page.getViewport({ scale: 1.0 });
     const pageWidthPt = viewport.width;
     const pageHeightPt = viewport.height;
-
     const pageWidthTwip = Math.round(pageWidthPt * PT_TO_TWIP);
     const pageHeightTwip = Math.round(pageHeightPt * PT_TO_TWIP);
 
-    const { lines, totalChars } = await extractTextLines(page);
-    const images = await extractPageImages(page);
+    const RENDER_SCALE = 1.5;
+    const renderViewport = page.getViewport({ scale: RENDER_SCALE });
+    const pageCanvas = document.createElement('canvas');
+    pageCanvas.width = renderViewport.width;
+    pageCanvas.height = renderViewport.height;
+    const pageCtx = pageCanvas.getContext('2d');
+
+    let pagePixels: Uint8ClampedArray | null = null;
+    if (pageCtx) {
+      await page.render({
+        canvasContext: pageCtx,
+        viewport: renderViewport,
+        canvas: pageCanvas,
+      } as any).promise;
+
+      try {
+        const imgData = pageCtx.getImageData(0, 0, pageCanvas.width, pageCanvas.height);
+        pagePixels = imgData.data;
+      } catch {
+        // Ignore sampling error
+      }
+    }
+
+    const { lines, totalChars } = await extractTextLines(
+      page,
+      pagePixels,
+      pageCanvas.width,
+      pageCanvas.height,
+      RENDER_SCALE,
+      pageHeightPt
+    );
+    const images = await extractPageImages(page, pageCanvas, RENDER_SCALE, pageHeightPt);
 
     const sectionChildren: Paragraph[] = [];
 
@@ -514,10 +592,28 @@ export async function pdfToDocx(file: File): Promise<Blob> {
 
     // Fallback if page is scanned or empty
     if (totalChars < 15 && images.length === 0) {
-      const fallbackParagraph = await renderPageFallbackParagraph(page);
-      if (fallbackParagraph) {
-        sectionChildren.push(fallbackParagraph);
-      }
+      const blob: Blob = await new Promise((resolve) => {
+        pageCanvas.toBlob((b) => resolve(b!), 'image/png');
+      });
+      const imgArrayBuffer = await blob.arrayBuffer();
+      const maxW = 520;
+      const ratio = maxW / pageCanvas.width;
+
+      sectionChildren.push(
+        new Paragraph({
+          spacing: { before: 80, after: 80 },
+          children: [
+            new ImageRun({
+              data: imgArrayBuffer,
+              transformation: {
+                width: maxW,
+                height: Math.round(pageCanvas.height * ratio),
+              },
+              type: 'png',
+            }),
+          ],
+        })
+      );
     } else {
       // Find minimum left margin of all blocks on the page
       const leftPositions: number[] = [
@@ -620,6 +716,7 @@ export async function pdfToDocx(file: File): Promise<Blob> {
                 text: item.str,
                 bold: item.isBold,
                 italics: item.isItalic,
+                color: item.color,
                 size: Math.max(16, Math.min(72, item.fontSize * 2)),
                 font: item.fontFamily,
               })
