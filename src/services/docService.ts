@@ -210,13 +210,28 @@ async function extractPageImages(
         // Method 1: Try getting object from PDF.js cache
         let imgObj: any = null;
         try {
-          if (pos.ref.startsWith('g_')) {
-            imgObj = page.commonObjs.get(pos.ref);
-          } else {
-            imgObj = page.objs.get(pos.ref);
-          }
+          const objs = pos.ref.startsWith('g_') ? page.commonObjs : page.objs;
+          imgObj = await new Promise<any>((resolve) => {
+            let done = false;
+            try {
+              objs.get(pos.ref, (data: any) => {
+                if (!done) {
+                  done = true;
+                  resolve(data);
+                }
+              });
+            } catch {
+              resolve(null);
+            }
+            setTimeout(() => {
+              if (!done) {
+                done = true;
+                resolve(null);
+              }
+            }, 300);
+          });
         } catch {
-          // Object may not be in synchronous cache; fall back to canvas crop
+          // Fall back to high-res canvas crop
         }
 
         if (imgObj) {
@@ -338,7 +353,9 @@ interface TextLine {
 }
 
 /**
- * Sample text color from rendered canvas pixels at text position
+ * Sample text color from rendered canvas pixels at text position.
+ * Only returns a hex color if the text is genuinely chromatic (colored: blue, red, green, etc.).
+ * For standard black, charcoal, or neutral dark text, returns undefined so Word renders it in standard black.
  */
 function sampleTextColor(
   pixels: Uint8ClampedArray,
@@ -347,10 +364,8 @@ function sampleTextColor(
   centerX: number,
   centerY: number
 ): string | undefined {
-  let minLum = 255;
-  let maxLum = 0;
-  let darkestHex: string | undefined = undefined;
-  let lightestHex: string | undefined = undefined;
+  let bestChromaticHex: string | undefined = undefined;
+  let maxSaturation = 0;
 
   for (let dy = -3; dy <= 3; dy++) {
     for (let dx = -2; dx <= 6; dx++) {
@@ -363,36 +378,24 @@ function sampleTextColor(
       const b = pixels[idx + 2];
       const a = pixels[idx + 3];
 
-      if (a < 80) continue;
+      if (a < 100) continue;
 
+      // Color difference (chroma / saturation)
+      const diff = Math.max(Math.abs(r - g), Math.abs(r - b), Math.abs(g - b));
       const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-      const hex = [r, g, b]
-        .map((c) => c.toString(16).padStart(2, '0'))
-        .join('')
-        .toUpperCase();
 
-      if (lum < minLum) {
-        minLum = lum;
-        darkestHex = hex;
-      }
-      if (lum > maxLum) {
-        maxLum = lum;
-        lightestHex = hex;
+      // Only consider genuine colored fonts (diff >= 25) that are not washed-out/white (lum < 200)
+      if (diff >= 25 && lum < 200 && diff > maxSaturation) {
+        maxSaturation = diff;
+        bestChromaticHex = [r, g, b]
+          .map((c) => c.toString(16).padStart(2, '0'))
+          .join('')
+          .toUpperCase();
       }
     }
   }
 
-  // Colored text on light background (ignore pure black lum < 38)
-  if (minLum < 200 && minLum >= 38 && darkestHex) {
-    return darkestHex;
-  }
-
-  // Inverted text on dark background
-  if (minLum < 60 && maxLum > 180 && lightestHex) {
-    return lightestHex;
-  }
-
-  return undefined;
+  return bestChromaticHex;
 }
 
 /**
@@ -553,7 +556,7 @@ export async function pdfToDocx(file: File): Promise<Blob> {
     const pageWidthTwip = Math.round(pageWidthPt * PT_TO_TWIP);
     const pageHeightTwip = Math.round(pageHeightPt * PT_TO_TWIP);
 
-    const RENDER_SCALE = 1.5;
+    const RENDER_SCALE = 2.5;
     const renderViewport = page.getViewport({ scale: RENDER_SCALE });
     const pageCanvas = document.createElement('canvas');
     pageCanvas.width = renderViewport.width;
