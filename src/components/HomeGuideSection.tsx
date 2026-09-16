@@ -7,39 +7,43 @@ export const HomeGuideSection: React.FC = () => {
   const featuredPosts = BLOG_POSTS.slice(0, 3);
 
   return (
-    <section className="border-t border-zinc-200 bg-white py-10 sm:py-16">
+    <section className="border-t border-zinc-200 bg-gradient-to-b from-white to-zinc-50/80 py-8 sm:py-14">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 sm:mb-8 gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-5 sm:mb-8 gap-3">
           <div>
-            <h2 className="text-lg sm:text-2xl font-bold text-zinc-900 leading-tight">
-              Panduan & Tips PDF Terbaru
-            </h2>
-            <p className="text-xs sm:text-sm text-zinc-500 mt-1 leading-relaxed">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center">
+                <BookOpen className="w-3.5 h-3.5 text-indigo-600" />
+              </div>
+              <h2 className="text-base sm:text-xl font-bold text-zinc-900 leading-tight">
+                Panduan & Tips PDF
+              </h2>
+            </div>
+            <p className="text-[11px] sm:text-xs text-zinc-400 ml-9 sm:ml-0 leading-relaxed">
               Tutorial praktis untuk syarat CPNS, BUMN, gabung ijazah, dan efisiensi dokumen kerja.
             </p>
           </div>
 
           <Link
             to="/panduan"
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium transition-all shrink-0 w-full sm:w-auto"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 hover:text-indigo-600 text-xs font-medium transition-all shadow-xs shrink-0"
           >
-            <BookOpen className="w-3.5 h-3.5 text-zinc-400" />
-            <span>Lihat Semua Panduan</span>
+            Semua Panduan
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         {/* Featured Posts Cards */}
-        <div className="flex md:grid md:grid-cols-3 gap-3 sm:gap-4 overflow-x-auto scrollbar-none pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory">
+        <div className="flex sm:grid sm:grid-cols-3 gap-3 sm:gap-4 overflow-x-auto scrollbar-none pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory">
           {featuredPosts.map((post) => (
             <Link
               key={post.id}
               to={`/panduan/${post.slug}`}
-              className="w-[85vw] max-w-[300px] md:w-auto shrink-0 snap-align-start precision-card rounded-xl p-4 sm:p-5 flex flex-col justify-between group"
+              className="w-[75vw] max-w-[280px] sm:w-auto shrink-0 snap-start precision-card rounded-xl p-3.5 sm:p-5 flex flex-col justify-between group"
             >
               <div>
-                <div className="flex items-center justify-between text-xs text-zinc-400 mb-2.5">
+                <div className="flex items-center justify-between text-xs text-zinc-400 mb-2">
                   <span className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-600 border border-indigo-200/60 font-medium text-[10px]">
                     {post.category}
                   </span>
@@ -49,21 +53,32 @@ export const HomeGuideSection: React.FC = () => {
                   </span>
                 </div>
 
-                <h3 className="font-semibold text-sm text-zinc-900 group-hover:text-indigo-600 transition-colors mb-2 line-clamp-2 leading-snug">
+                <h3 className="font-semibold text-xs sm:text-sm text-zinc-900 group-hover:text-indigo-600 transition-colors mb-1.5 line-clamp-2 leading-snug">
                   {post.title}
                 </h3>
 
-                <p className="text-[11px] text-zinc-400 leading-relaxed line-clamp-2 sm:line-clamp-3 mb-3">
+                <p className="text-[11px] text-zinc-400 leading-relaxed line-clamp-2 mb-2">
                   {post.summary}
                 </p>
               </div>
 
-              <div className="pt-2.5 border-t border-zinc-100 flex items-center justify-between text-xs font-medium text-zinc-400 group-hover:text-indigo-600 transition-colors">
+              <div className="pt-2 border-t border-zinc-100 flex items-center justify-between text-[11px] font-medium text-zinc-400 group-hover:text-indigo-600 transition-colors">
                 <span>Baca Panduan</span>
-                <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-3 h-3 transform group-hover:translate-x-1 transition-transform" />
               </div>
             </Link>
           ))}
+        </div>
+
+        {/* Mobile CTA — below cards */}
+        <div className="sm:hidden mt-4">
+          <Link
+            to="/panduan"
+            className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg bg-zinc-100 hover:bg-zinc-200/80 text-zinc-700 text-xs font-medium transition-all"
+          >
+            Lihat Semua Panduan
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
       </div>
     </section>

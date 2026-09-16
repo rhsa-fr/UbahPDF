@@ -67,10 +67,10 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`relative border border-dashed rounded-xl p-4 sm:p-8 text-center cursor-pointer transition-all duration-150 select-none ${
+        className={`relative border-2 border-dashed rounded-2xl p-6 sm:p-10 text-center cursor-pointer transition-all duration-200 select-none ${
           isDragging
-            ? 'border-indigo-500 bg-indigo-50/40'
-            : 'border-zinc-300 hover:border-zinc-400 bg-zinc-50/60 hover:bg-zinc-100/60'
+            ? 'border-indigo-500 bg-indigo-50/50 scale-[1.01]'
+            : 'border-zinc-300 hover:border-indigo-400 bg-gradient-to-b from-white to-zinc-50/80 hover:from-indigo-50/30 hover:to-white'
         }`}
       >
         <input
@@ -82,8 +82,8 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
           className="hidden"
         />
 
-        <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-white flex items-center justify-center mx-auto mb-2 sm:mb-3 border border-zinc-200 shadow-xs">
-          <UploadCloud className="w-4.5 h-4.5 sm:w-6 sm:h-6 text-indigo-600" />
+        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-indigo-50 flex items-center justify-center mx-auto mb-3 sm:mb-4 border border-indigo-100 shadow-sm transition-transform duration-200 ${isDragging ? 'scale-110' : ''}`}>
+          <UploadCloud className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" />
         </div>
 
         <h3 className="text-sm sm:text-base font-bold text-zinc-900 mb-0.5 sm:mb-1">
@@ -91,12 +91,12 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
           <span className="hidden sm:inline">Tarik & Lepas File di Sini</span>
         </h3>
 
-        <p className="text-[11px] sm:text-xs text-zinc-500 mb-2 sm:mb-3">
+        <p className="text-[11px] sm:text-xs text-zinc-500 mb-3 sm:mb-4">
           <span className="sm:hidden">Format: {tool.accept}</span>
           <span className="hidden sm:inline">atau <span className="text-indigo-600 font-semibold underline underline-offset-2">pilih dari perangkat</span> ({tool.accept})</span>
         </p>
 
-        <div className="inline-flex items-center gap-1 sm:gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-lg btn-primary text-xs">
+        <div className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-xl btn-primary text-xs font-semibold shadow-sm">
           <Plus className="w-3.5 h-3.5" />
           <span>Pilih File</span>
         </div>

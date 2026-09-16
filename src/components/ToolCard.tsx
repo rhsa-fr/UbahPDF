@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import * as Icons from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import { ToolIcon } from './ToolIcons';
 import type { Tool } from '../types';
 
 interface ToolCardProps {
@@ -8,21 +9,18 @@ interface ToolCardProps {
 }
 
 export const ToolCard: React.FC<ToolCardProps> = ({ tool }) => {
-  const IconComponent = (Icons as any)[tool.iconName] || Icons.FileText;
-
   return (
     <Link
       to={`/${tool.id}`}
-      className="group precision-card rounded-xl p-3.5 sm:p-5 cursor-pointer flex flex-col justify-between select-none"
+      className="group precision-card rounded-xl p-3.5 sm:p-5 cursor-pointer flex flex-col justify-between select-none bg-white hover:border-zinc-300 transition-all"
     >
       {/* Card Content */}
       <div>
-        <div className="flex items-center justify-between mb-2.5 sm:mb-3.5">
-          <div
-            className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center transition-transform duration-200 group-hover:scale-105"
-            style={{ backgroundColor: 'var(--accent-subtle)', color: 'var(--accent)' }}
-          >
-            <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" />
+        <div className="flex items-center justify-between mb-2 sm:mb-3">
+          {/* Custom Visual Document Icon */}
+          <div className="transition-transform duration-200 group-hover:scale-105">
+            <ToolIcon toolId={tool.id} size={38} className="sm:hidden" />
+            <ToolIcon toolId={tool.id} size={44} className="hidden sm:block" />
           </div>
 
           {tool.popular && (
@@ -45,7 +43,7 @@ export const ToolCard: React.FC<ToolCardProps> = ({ tool }) => {
       <div className="mt-3 sm:mt-4 pt-2 sm:pt-3 border-t border-zinc-100 flex items-center justify-between text-[11px] sm:text-xs font-medium text-zinc-400 group-hover:text-indigo-600 transition-colors">
         <span className="hidden sm:inline">Gunakan Tool</span>
         <span className="sm:hidden">Pakai</span>
-        <Icons.ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 transform group-hover:translate-x-1 transition-transform" />
+        <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 transform group-hover:translate-x-1 transition-transform" />
       </div>
     </Link>
   );

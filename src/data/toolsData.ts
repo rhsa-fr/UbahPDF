@@ -1,6 +1,7 @@
 import type { Tool } from '../types';
 
 export const TOOLS: Tool[] = [
+  // ── Populer (Top 4) ──────────────────────────────────────────
   {
     id: 'merge-pdf',
     name: 'Merge PDF',
@@ -21,54 +22,6 @@ export const TOOLS: Tool[] = [
     category: 'pdf',
     color: '#10b981', // Emerald Green
     gradient: 'from-emerald-500 to-teal-600',
-    accept: '.pdf',
-    multiple: false,
-    popular: true,
-  },
-  {
-    id: 'page-numbers',
-    name: 'Nomor Halaman PDF',
-    description: 'Tambahkan nomor halaman otomatis (Angka Arab, Romawi i/I, atau kustom) pada posisi mana pun.',
-    iconName: 'Hash',
-    category: 'pdf',
-    color: '#8b5cf6', // Purple
-    gradient: 'from-purple-500 to-indigo-600',
-    accept: '.pdf',
-    multiple: false,
-    popular: true,
-  },
-  {
-    id: 'split-pdf',
-    name: 'Split PDF',
-    description: 'Pisahkan halaman PDF atau ekstrak rentang halaman tertentu.',
-    iconName: 'Scissors',
-    category: 'pdf',
-    color: '#f97316', // Orange
-    gradient: 'from-orange-500 to-amber-600',
-    accept: '.pdf',
-    multiple: false,
-    popular: true,
-  },
-  {
-    id: 'image-to-pdf',
-    name: 'JPG/PNG to PDF',
-    description: 'Ubah gambar JPG, PNG, atau WebP menjadi file dokumen PDF.',
-    iconName: 'Image',
-    category: 'image',
-    color: '#3b82f6', // Blue
-    gradient: 'from-blue-500 to-cyan-600',
-    accept: 'image/png,image/jpeg,image/webp,.jpg,.jpeg,.png,.webp',
-    multiple: true,
-    popular: true,
-  },
-  {
-    id: 'pdf-to-image',
-    name: 'PDF to JPG/PNG',
-    description: 'Ekstrak setiap halaman dokumen PDF menjadi gambar resolusi tinggi.',
-    iconName: 'FileImage',
-    category: 'pdf',
-    color: '#8b5cf6', // Purple
-    gradient: 'from-purple-500 to-indigo-600',
     accept: '.pdf',
     multiple: false,
     popular: true,
@@ -96,6 +49,51 @@ export const TOOLS: Tool[] = [
     accept: '.docx',
     multiple: false,
     popular: true,
+  },
+  // ── Lainnya ───────────────────────────────────────────────────
+  {
+    id: 'page-numbers',
+    name: 'Nomor Halaman PDF',
+    description: 'Tambahkan nomor halaman otomatis (Angka Arab, Romawi i/I, atau kustom) pada posisi mana pun.',
+    iconName: 'Hash',
+    category: 'pdf',
+    color: '#8b5cf6', // Purple
+    gradient: 'from-purple-500 to-indigo-600',
+    accept: '.pdf',
+    multiple: false,
+  },
+  {
+    id: 'split-pdf',
+    name: 'Split PDF',
+    description: 'Pisahkan halaman PDF atau ekstrak rentang halaman tertentu.',
+    iconName: 'Scissors',
+    category: 'pdf',
+    color: '#f97316', // Orange
+    gradient: 'from-orange-500 to-amber-600',
+    accept: '.pdf',
+    multiple: false,
+  },
+  {
+    id: 'image-to-pdf',
+    name: 'JPG/PNG to PDF',
+    description: 'Ubah gambar JPG, PNG, atau WebP menjadi file dokumen PDF.',
+    iconName: 'Image',
+    category: 'image',
+    color: '#3b82f6', // Blue
+    gradient: 'from-blue-500 to-cyan-600',
+    accept: 'image/png,image/jpeg,image/webp,.jpg,.jpeg,.png,.webp',
+    multiple: true,
+  },
+  {
+    id: 'pdf-to-image',
+    name: 'PDF to JPG/PNG',
+    description: 'Ekstrak setiap halaman dokumen PDF menjadi gambar resolusi tinggi.',
+    iconName: 'FileImage',
+    category: 'pdf',
+    color: '#8b5cf6', // Purple
+    gradient: 'from-purple-500 to-indigo-600',
+    accept: '.pdf',
+    multiple: false,
   },
   {
     id: 'rotate-pdf',
@@ -140,7 +138,6 @@ export const TOOLS: Tool[] = [
     gradient: 'from-emerald-500 to-teal-600',
     accept: '.pdf',
     multiple: false,
-    popular: true,
   },
   {
     id: 'delete-pages',
@@ -152,7 +149,6 @@ export const TOOLS: Tool[] = [
     gradient: 'from-rose-500 to-red-600',
     accept: '.pdf',
     multiple: false,
-    popular: true,
   },
   {
     id: 'protect-pdf',
@@ -175,7 +171,6 @@ export const TOOLS: Tool[] = [
     gradient: 'from-emerald-500 to-teal-600',
     accept: '.pdf',
     multiple: false,
-    popular: true,
   },
   {
     id: 'resize-pdf',
@@ -220,7 +215,6 @@ export const TOOLS: Tool[] = [
     gradient: 'from-green-500 to-emerald-600',
     accept: '.xlsx,.xls,.csv',
     multiple: false,
-    popular: true,
   },
   {
     id: 'pdf-to-markdown',
@@ -232,7 +226,6 @@ export const TOOLS: Tool[] = [
     gradient: 'from-sky-500 to-indigo-600',
     accept: '.pdf',
     multiple: false,
-    popular: true,
   },
   {
     id: 'word-to-markdown',
@@ -244,6 +237,5 @@ export const TOOLS: Tool[] = [
     gradient: 'from-blue-600 to-cyan-600',
     accept: '.docx',
     multiple: false,
-    popular: true,
   },
 ];

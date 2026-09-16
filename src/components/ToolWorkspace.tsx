@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import * as Icons from 'lucide-react';
 import {
   X,
   Play,
@@ -12,6 +11,7 @@ import { PageReorderGrid } from './PageReorderGrid';
 import { PdfSignatureOverlay } from './PdfSignatureOverlay';
 import { SuccessResultView } from './SuccessResultView';
 import { ToolOptionsPanel } from './ToolOptionsPanel';
+import { ToolIcon } from './ToolIcons';
 import {
   mergePdfs,
   splitPdf,
@@ -45,7 +45,6 @@ interface ToolWorkspaceProps {
 }
 
 export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isEmbedded = false }) => {
-  const ToolHeaderIcon = (Icons as any)[tool.iconName] || Icons.FileText;
   const modalBodyRef = useRef<HTMLDivElement | null>(null);
 
   const [files, setFiles] = useState<UploadedFile[]>([]);
@@ -481,11 +480,8 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
         {/* Workspace Top Header */}
         <div className="px-4 sm:px-6 py-3 border-b border-zinc-200 flex items-center justify-between bg-zinc-50 gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div
-              className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-              style={{ backgroundColor: 'var(--accent-subtle)', color: 'var(--accent)' }}
-            >
-              <ToolHeaderIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+            <div className="shrink-0">
+              <ToolIcon toolId={tool.id} size={36} />
             </div>
             <div className="min-w-0 flex-1">
               <h2 className="text-sm sm:text-base font-bold text-zinc-900 truncate">

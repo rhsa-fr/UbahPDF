@@ -32,15 +32,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full header-bar border-b border-zinc-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-        {/* Brand Logo & Client-Side Status */}
-        <div className="flex items-center gap-4">
+    <header className="sticky top-0 z-40 w-full header-bar">
+      {/* Main Top Bar */}
+      <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 h-12 sm:h-14 flex items-center justify-between">
+        {/* Brand Logo */}
+        <div className="flex items-center gap-2 sm:gap-4">
           <div
             onClick={handleLogoClick}
-            className="flex items-center gap-2 cursor-pointer group select-none"
+            className="flex items-center gap-1.5 sm:gap-2 cursor-pointer group select-none"
           >
-            <TdocLogo size={28} />
+            <TdocLogo size={24} />
             <span className="font-bold text-base sm:text-lg tracking-tight text-zinc-900 font-['Inter']">
               Ubah<span className="text-indigo-600">PDF</span>
             </span>
@@ -52,7 +53,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Desktop Category Navigation Pills - Swiss Segmented Style */}
+        {/* Desktop Category Navigation Pills */}
         <nav className="hidden md:flex items-center gap-0.5 bg-zinc-100/90 p-1 rounded-lg border border-zinc-200/80">
           {categories.map((cat) => {
             const isSelected = selectedCategory === cat.id;
@@ -79,27 +80,28 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center gap-2">
           <Link
             to="/panduan"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-zinc-50 text-zinc-700 hover:text-zinc-900 border border-zinc-200 text-xs font-medium transition-all shadow-xs"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-white hover:bg-zinc-50 text-zinc-700 hover:text-zinc-900 border border-zinc-200 text-xs font-medium transition-all shadow-xs"
           >
             <BookOpen className="w-3.5 h-3.5 text-zinc-500" />
-            <span className="text-[11px] sm:text-xs">Panduan & Tips</span>
+            <span className="hidden sm:inline">Panduan & Tips</span>
+            <span className="sm:hidden text-[11px]">Panduan</span>
           </Link>
         </div>
       </div>
 
-      {/* Mobile Horizontal Category Bar (Only shown on Homepage) */}
+      {/* Mobile Category Scroll Pills (Only on Homepage) */}
       {isHomePage && (
-        <nav className="flex md:hidden items-center gap-1.5 px-4 py-2 border-t border-zinc-200/80 overflow-x-auto scrollbar-none bg-zinc-50">
+        <nav className="flex md:hidden items-center gap-1.5 px-3.5 py-1.5 border-t border-zinc-100 overflow-x-auto scrollbar-none bg-white/60">
           {categories.map((cat) => {
             const isSelected = selectedCategory === cat.id;
             return (
               <button
                 key={cat.id}
                 onClick={() => onSelectCategory(cat.id)}
-                className={`px-3 py-1 rounded-md text-[11px] font-medium whitespace-nowrap shrink-0 transition-all ${
+                className={`px-3 py-1 rounded-full text-[11px] font-medium whitespace-nowrap shrink-0 transition-all ${
                   isSelected
                     ? 'bg-zinc-900 text-white shadow-xs font-semibold'
-                    : 'bg-white text-zinc-600 border border-zinc-200'
+                    : 'bg-zinc-100/80 text-zinc-600 hover:bg-zinc-200/60 active:bg-zinc-200'
                 }`}
               >
                 {cat.label}

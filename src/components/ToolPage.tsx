@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import * as Icons from 'lucide-react';
 import type { Tool } from '../types';
 import { TOOLS } from '../data/toolsData';
 import { SEO_DATA } from '../data/seoData';
 import { ToolWorkspace } from './ToolWorkspace';
 import { SEOHead } from './SEOHead';
+import { ToolIcon } from './ToolIcons';
 import { ShieldCheck, Zap, Lock, CheckCircle2, HelpCircle, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
 
 interface ToolPageProps {
@@ -30,7 +30,10 @@ export const ToolPage: React.FC<ToolPageProps> = ({ tool }) => {
     ]
   };
 
-  const otherTools = TOOLS.filter((t) => t.id !== tool.id).slice(0, 4);
+  const otherTools = TOOLS
+    .filter((t) => t.id !== tool.id)
+    .sort((a, b) => (b.popular ? 1 : 0) - (a.popular ? 1 : 0))
+    .slice(0, 4);
 
   return (
     <>
@@ -54,7 +57,7 @@ export const ToolPage: React.FC<ToolPageProps> = ({ tool }) => {
         </div>
 
         {/* Interactive Workspace Area */}
-        <div className="bg-white rounded-xl p-4 sm:p-6 border border-zinc-200 shadow-xs mb-10">
+        <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden mb-10">
           <ToolWorkspace tool={tool} onClose={() => navigate('/')} isEmbedded={true} />
         </div>
 
@@ -153,11 +156,10 @@ export const ToolPage: React.FC<ToolPageProps> = ({ tool }) => {
         {/* Other Tools Internal Links */}
         <section className="border-t border-zinc-200 pt-8 mb-8">
           <h2 className="text-sm sm:text-base font-bold text-zinc-900 mb-4">
-            Tool PDF Lainnya di UbahPDF
+            Tool Populer Lainnya
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {otherTools.map((other) => {
-              const IconComp = (Icons as any)[other.iconName] || Icons.FileText;
               return (
                 <Link
                   key={other.id}
@@ -166,11 +168,8 @@ export const ToolPage: React.FC<ToolPageProps> = ({ tool }) => {
                 >
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <div
-                        className="w-7 h-7 rounded-md flex items-center justify-center text-xs shrink-0"
-                        style={{ backgroundColor: 'var(--accent-subtle)', color: 'var(--accent)' }}
-                      >
-                        <IconComp className="w-3.5 h-3.5" />
+                      <div className="shrink-0 transition-transform duration-200 group-hover:scale-105">
+                        <ToolIcon toolId={other.id} size={32} />
                       </div>
                       <h3 className="font-semibold text-xs sm:text-sm text-zinc-900 group-hover:text-indigo-600 transition-colors truncate">
                         {other.name}
