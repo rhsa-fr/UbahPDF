@@ -394,27 +394,47 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
       {tool.id === 'pdf-to-word' && (
         <div className="space-y-3 text-xs">
           <label className="block text-zinc-700 font-semibold">Format Output</label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {[
-              { id: 'docx', label: 'Word (.docx)', desc: 'Dokumen Microsoft Word' },
-              { id: 'txt', label: 'Text (.txt)', desc: 'Teks biasa tanpa format' },
+              {
+                id: 'editable',
+                label: 'Word Dapat Diedit (.docx)',
+                desc: 'Teks bisa diedit & gambar terpisah (Direkomendasikan)',
+                badge: 'Populer',
+              },
+              {
+                id: 'image',
+                label: 'Salinan Visual (.docx)',
+                desc: 'Tampilan visual persis PDF asli dalam dokumen Word',
+                badge: 'Presisi',
+              },
+              {
+                id: 'txt',
+                label: 'Teks Murni (.txt)',
+                desc: 'Hanya ekstrak teks tanpa format dokumen',
+              },
             ].map((fmt) => {
-              const selected = (options.pdfToWordFormat || 'docx') === fmt.id;
+              const selected = (options.pdfToWordFormat || 'editable') === fmt.id;
               return (
                 <button
                   key={fmt.id}
                   type="button"
                   onClick={() => setOptions({ ...options, pdfToWordFormat: fmt.id as any })}
-                  className={`p-3 rounded-lg border text-left transition-all ${
+                  className={`p-3 rounded-xl border text-left transition-all relative ${
                     selected
-                      ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-500/20'
+                      ? 'border-blue-500 bg-blue-50/80 ring-2 ring-blue-500/20 shadow-sm'
                       : 'border-zinc-200 bg-white hover:border-zinc-300'
                   }`}
                 >
+                  {fmt.badge && (
+                    <span className="absolute top-2 right-2 text-[9px] font-semibold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                      {fmt.badge}
+                    </span>
+                  )}
                   <span className={`block font-semibold text-xs ${selected ? 'text-blue-700' : 'text-zinc-900'}`}>
                     {fmt.label}
                   </span>
-                  <span className="text-[10px] text-zinc-400">{fmt.desc}</span>
+                  <span className="text-[11px] text-zinc-500 mt-1 block leading-tight">{fmt.desc}</span>
                 </button>
               );
             })}

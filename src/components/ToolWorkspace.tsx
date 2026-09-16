@@ -32,7 +32,7 @@ import {
   extractImagesFromPdf,
   grayscalePdf,
 } from '../services/pdfService';
-import { textToDocx, docxToPdf, pdfToDocx } from '../services/docService';
+import { textToDocx, docxToPdf, pdfToDocx, pdfToDocxImage } from '../services/docService';
 import { excelToPdf } from '../services/excelService';
 import { pdfToMarkdown, docxToMarkdown } from '../services/markdownService';
 import { downloadFile, parsePageRanges } from '../services/fileUtils';
@@ -252,13 +252,21 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
           type: 'single',
         });
       } else if (tool.id === 'pdf-to-word') {
-        const outputFormat = options.pdfToWordFormat || 'docx';
-        if (outputFormat === 'docx') {
-          setProgressText('Mengonversi PDF ke dokumen Word (menyimpan layout & gambar)...');
+        const outputFormat = options.pdfToWordFormat || 'editable';
+        if (outputFormat === 'editable') {
+          setProgressText('Mengekstrak teks & gambar menjadi dokumen Word yang dapat diedit...');
           const docxBlob = await pdfToDocx(files[0].file);
           setResultData({
             data: docxBlob,
             filename: `UbahPDF_${files[0].name.replace(/\.[^/.]+$/, '')}.docx`,
+            type: 'single',
+          });
+        } else if (outputFormat === 'image') {
+          setProgressText('Mengonversi PDF ke dokumen Word (salinan visual gambar)...');
+          const docxBlob = await pdfToDocxImage(files[0].file);
+          setResultData({
+            data: docxBlob,
+            filename: `UbahPDF_Visual_${files[0].name.replace(/\.[^/.]+$/, '')}.docx`,
             type: 'single',
           });
         } else {
