@@ -35,11 +35,14 @@ export const Hero: React.FC<HeroProps> = ({
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Cari tool PDF..."
+              aria-label="Cari alat PDF"
               className="w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-3 rounded-lg sm:rounded-xl bg-white border border-zinc-200 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all text-xs sm:text-sm shadow-xs"
             />
             {searchQuery && (
               <button
+                type="button"
                 onClick={() => onSearchChange('')}
+                aria-label="Hapus kata kunci pencarian"
                 className="absolute right-2.5 sm:right-3 px-2 py-0.5 rounded-md bg-zinc-100 text-[10px] font-medium text-zinc-500 hover:text-zinc-700 hover:bg-zinc-200 transition-colors"
               >
                 Clear

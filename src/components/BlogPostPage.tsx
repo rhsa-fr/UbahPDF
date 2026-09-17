@@ -1,95 +1,85 @@
-import React, { useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { BLOG_POSTS } from '../data/blogData';
 import { TOOLS } from '../data/toolsData';
 import { Clock, Calendar, ArrowRight, CheckCircle2, BookOpen } from 'lucide-react';
 import { ToolIcon } from './ToolIcons';
+import { useSeoMeta } from '../hooks/useSeoMeta';
+import { BASE_URL, ROUTES } from '../config/routes';
 
 export const BlogPostPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const post = BLOG_POSTS.find((p) => p.slug === slug);
+  const normalizedSlug = decodeURIComponent(slug || '').toLowerCase();
+  const post = BLOG_POSTS.find((p) => p.slug.toLowerCase() === normalizedSlug);
 
-  useEffect(() => {
-    if (post) {
-      document.title = `${post.title} - UbahPDF`;
+  const canonicalUrl = post ? `${BASE_URL}${ROUTES.GUIDE_DETAIL(post.slug)}` : `${BASE_URL}${ROUTES.GUIDES}`;
 
-      let desc = document.querySelector('meta[name="description"]');
-      if (desc) {
-        desc.setAttribute('content', post.metaDescription);
-      }
-
-      const canonicalUrl = `https://ubahpdf.my.id/panduan/${post.slug}`;
-      let canonical = document.querySelector('link[rel="canonical"]');
-      if (!canonical) {
-        canonical = document.createElement('link');
-        canonical.setAttribute('rel', 'canonical');
-        document.head.appendChild(canonical);
-      }
-      canonical.setAttribute('href', canonicalUrl);
-
-      let script = document.getElementById('blog-posting-json-ld');
-      if (!script) {
-        script = document.createElement('script');
-        script.id = 'blog-posting-json-ld';
-        script.setAttribute('type', 'application/ld+json');
-        document.head.appendChild(script);
-      }
-      script.textContent = JSON.stringify({
-        '@context': 'https://schema.org',
-        '@graph': [
-          {
-            '@type': 'BlogPosting',
-            'headline': post.title,
-            'description': post.metaDescription,
-            'author': {
-              '@type': 'Organization',
-              'name': 'UbahPDF'
-            },
-            'publisher': {
-              '@type': 'Organization',
-              'name': 'UbahPDF',
-              'logo': {
-                '@type': 'ImageObject',
-                'url': 'https://ubahpdf.my.id/logo.png'
-              }
-            },
-            'datePublished': '2026-08-06',
-            'mainEntityOfPage': canonicalUrl
+  const jsonLd = useMemo(() => {
+    if (!post) return null;
+    return {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'BlogPosting',
+          headline: post.title,
+          description: post.metaDescription,
+          author: {
+            '@type': 'Organization',
+            name: 'UbahPDF',
           },
-          {
-            '@type': 'BreadcrumbList',
-            'itemListElement': [
-              {
-                '@type': 'ListItem',
-                'position': 1,
-                'name': 'Beranda',
-                'item': 'https://ubahpdf.my.id/'
-              },
-              {
-                '@type': 'ListItem',
-                'position': 2,
-                'name': 'Panduan',
-                'item': 'https://ubahpdf.my.id/panduan'
-              },
-              {
-                '@type': 'ListItem',
-                'position': 3,
-                'name': post.title,
-                'item': canonicalUrl
-              }
-            ]
-          }
-        ]
-      });
-    }
-  }, [post]);
+          publisher: {
+            '@type': 'Organization',
+            name: 'UbahPDF',
+            logo: {
+              '@type': 'ImageObject',
+              url: `${BASE_URL}/logo.png`,
+            },
+          },
+          datePublished: post.datePublishedISO,
+          mainEntityOfPage: canonicalUrl,
+        },
+        {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            {
+              '@type': 'ListItem',
+              position: 1,
+              name: 'Beranda',
+              item: `${BASE_URL}${ROUTES.HOME}`,
+            },
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: 'Panduan',
+              item: `${BASE_URL}${ROUTES.GUIDES}`,
+            },
+            {
+              '@type': 'ListItem',
+              position: 3,
+              name: post.title,
+              item: canonicalUrl,
+            },
+          ],
+        },
+      ],
+    };
+  }, [post, canonicalUrl]);
+
+  useSeoMeta({
+    title: post ? `${post.title} - UbahPDF` : 'Artikel Tidak Ditemukan - UbahPDF',
+    description: post ? post.metaDescription : 'Artikel panduan yang Anda cari tidak tersedia di UbahPDF.',
+    keywords: post ? post.keywords : undefined,
+    canonicalUrl,
+    jsonLd,
+    jsonLdId: 'blog-posting-json-ld',
+  });
 
   if (!post) {
     return (
       <div className="text-center py-20 px-4">
         <h2 className="text-2xl font-bold text-zinc-900 mb-2">Artikel Tidak Ditemukan</h2>
         <p className="text-zinc-500 text-sm mb-4">Artikel panduan yang Anda cari tidak tersedia.</p>
-        <Link to="/panduan" className="text-indigo-600 font-semibold text-xs hover:underline">
+        <Link to={ROUTES.GUIDES} className="text-indigo-600 font-semibold text-xs hover:underline">
           ← Kembali ke Daftar Panduan
         </Link>
       </div>
@@ -103,9 +93,9 @@ export const BlogPostPage: React.FC = () => {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-10">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-[11px] sm:text-xs text-zinc-400 mb-5 overflow-hidden">
-        <Link to="/" className="hover:text-zinc-900 transition-colors shrink-0">Beranda</Link>
+        <Link to={ROUTES.HOME} className="hover:text-zinc-900 transition-colors shrink-0">Beranda</Link>
         <span className="shrink-0 text-zinc-300">/</span>
-        <Link to="/panduan" className="hover:text-zinc-900 transition-colors shrink-0">Panduan</Link>
+        <Link to={ROUTES.GUIDES} className="hover:text-zinc-900 transition-colors shrink-0">Panduan</Link>
         <span className="shrink-0 text-zinc-300">/</span>
         <span className="text-zinc-700 font-medium truncate max-w-[160px] sm:max-w-none">{post.title}</span>
       </nav>
@@ -149,7 +139,7 @@ export const BlogPostPage: React.FC = () => {
             <p className="text-[11px] text-zinc-400 leading-relaxed line-clamp-1 sm:line-clamp-none">{post.content.ctaText}</p>
           </div>
           <Link
-            to={`/${relatedTool.id}`}
+            to={ROUTES.TOOL(relatedTool.id)}
             className="px-3.5 py-2 bg-white text-zinc-900 rounded-lg text-xs font-semibold shrink-0 flex items-center gap-1.5 hover:bg-zinc-100 transition-colors shadow-sm"
           >
             <span className="hidden sm:inline">Buka Tool</span>
@@ -195,7 +185,7 @@ export const BlogPostPage: React.FC = () => {
             <BookOpen className="w-4 h-4 text-indigo-600" />
             Panduan Lainnya
           </h3>
-          <Link to="/panduan" className="hidden sm:flex items-center gap-1 text-xs text-indigo-600 font-medium hover:text-indigo-700 transition-colors">
+          <Link to={ROUTES.GUIDES} className="hidden sm:flex items-center gap-1 text-xs text-indigo-600 font-medium hover:text-indigo-700 transition-colors">
             Semua
             <ArrowRight className="w-3 h-3" />
           </Link>
@@ -205,7 +195,7 @@ export const BlogPostPage: React.FC = () => {
           {otherPosts.map((op) => (
             <Link
               key={op.id}
-              to={`/panduan/${op.slug}`}
+              to={ROUTES.GUIDE_DETAIL(op.slug)}
               className="w-[72vw] max-w-[260px] sm:w-auto shrink-0 snap-start precision-card p-3.5 rounded-xl flex flex-col justify-between group"
             >
               <div>
@@ -225,7 +215,7 @@ export const BlogPostPage: React.FC = () => {
         </div>
         {/* Mobile see all link */}
         <div className="sm:hidden mt-3">
-          <Link to="/panduan" className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg bg-zinc-100 hover:bg-zinc-200/80 text-zinc-700 text-xs font-medium transition-all">
+          <Link to={ROUTES.GUIDES} className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg bg-zinc-100 hover:bg-zinc-200/80 text-zinc-700 text-xs font-medium transition-all">
             Lihat Semua Panduan
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>

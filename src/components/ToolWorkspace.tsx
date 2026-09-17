@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import {
   X,
@@ -89,6 +89,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
 
   // Load PDF thumbnails when first PDF file is added (for split, rotate, reorder, sign, delete)
   useEffect(() => {
+    let isMounted = true;
     if (
       files.length > 0 &&
       files[0].file.type.includes('pdf') &&
@@ -97,16 +98,25 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
       setIsLoadingThumbnails(true);
       renderPdfThumbnails(files[0].file)
         .then((thumbs) => {
-          setThumbnails(thumbs);
-          setIsLoadingThumbnails(false);
+          if (isMounted) {
+            setThumbnails(thumbs);
+            setIsLoadingThumbnails(false);
+          }
         })
         .catch((err) => {
           console.error('Error rendering thumbnails:', err);
-          setIsLoadingThumbnails(false);
+          if (isMounted) {
+            setIsLoadingThumbnails(false);
+            setErrorMsg('Gagal memuat pratinjau halaman PDF. Dokumen mungkin terenkripsi atau rusak.');
+          }
         });
     } else {
       setThumbnails([]);
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, [files, tool.id]);
 
   const handleFilesAdded = (newFiles: File[]) => {
@@ -212,7 +222,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
         const images = await pdfToImages(files[0].file, options);
         setResultData({
           data: images,
-          filename: `UbahPDF_Images_${files[0].name}.zip`,
+          filename: `UbahPDF_Images_${files[0].name.replace(/\.[^/.]+$/, '')}`,
           type: 'images',
         });
       } else if (tool.id === 'image-to-pdf') {
@@ -361,6 +371,9 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
         });
       } else if (tool.id === 'unlock-pdf') {
         setProgressText('Membuka kunci proteksi PDF...');
+        if (!options.unlockPassword || !options.unlockPassword.trim()) {
+          throw new Error('Silakan masukkan kata sandi (password) untuk membuka kunci PDF.');
+        }
         const unlockedBytes = await unlockPdf(files[0].file, options.unlockPassword);
         setResultData({
           data: unlockedBytes,
@@ -380,7 +393,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
         const images = await extractImagesFromPdf(files[0].file);
         setResultData({
           data: images,
-          filename: `UbahPDF_Images_${files[0].name}.zip`,
+          filename: `UbahPDF_Images_${files[0].name.replace(/\.[^/.]+$/, '')}`,
           type: 'images',
         });
       } else if (tool.id === 'grayscale-pdf') {
@@ -421,10 +434,11 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
 
       setStatus('success');
       confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Conversion Error:', err);
       setStatus('error');
-      setErrorMsg(err.message || 'Gagal memproses dokumen. Pastikan format file sesuai.');
+      const message = err instanceof Error ? err.message : 'Gagal memproses dokumen. Pastikan format file sesuai.';
+      setErrorMsg(message);
     }
   };
 
@@ -434,16 +448,30 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
       downloadFile(resultData.data as Blob | Uint8Array, resultData.filename);
     } else if (resultData.type === 'images') {
       const imgList = resultData.data as { dataUrl: string; name: string }[];
-      imgList.forEach((img) => {
-        const a = document.createElement('a');
-        a.href = img.dataUrl;
-        a.download = img.name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+      imgList.forEach((img, idx) => {
+        setTimeout(() => {
+          const a = document.createElement('a');
+          a.href = img.dataUrl;
+          a.download = img.name;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }, idx * 250);
       });
     }
   };
+
+  const handleSignaturePositionChange = useCallback(
+    (pos: { xPercent: number; yPercent: number; widthPercent: number }) => {
+      setOptions((prev) => ({
+        ...prev,
+        signatureXPercent: pos.xPercent,
+        signatureYPercent: pos.yPercent,
+        signatureWidthPercent: pos.widthPercent,
+      }));
+    },
+    []
+  );
 
   const handleRenameResult = (newName: string) => {
     setResultData((prev) => {
@@ -472,6 +500,12 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
     if (modalBodyRef.current) {
       modalBodyRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  };
+
+  const getGridMode = (): 'split' | 'rotate' | 'reorder' => {
+    if (tool.id === 'split-pdf' || tool.id === 'delete-pages') return 'split';
+    if (tool.id === 'rotate-pdf') return 'rotate';
+    return 'reorder';
   };
 
   const containerClass = isEmbedded
@@ -539,7 +573,10 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
                     <select
                       value={options.signaturePage || 1}
                       onChange={(e) =>
-                        setOptions({ ...options, signaturePage: parseInt(e.target.value) })
+                        setOptions((prev) => ({
+                          ...prev,
+                          signaturePage: parseInt(e.target.value, 10),
+                        }))
                       }
                       className="p-2 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-emerald-500 font-bold"
                     >
@@ -565,14 +602,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
                     thumbnails[0]
                   }
                   signatureDataUrl={options.signatureDataUrl}
-                  onPositionChange={(pos) =>
-                    setOptions((prev) => ({
-                      ...prev,
-                      signatureXPercent: pos.xPercent,
-                      signatureYPercent: pos.yPercent,
-                      signatureWidthPercent: pos.widthPercent,
-                    }))
-                  }
+                  onPositionChange={handleSignaturePositionChange}
                 />
               ) : (
                 <div className="p-6 text-center text-slate-500 text-xs space-y-3">
@@ -612,13 +642,7 @@ export const ToolWorkspace: React.FC<ToolWorkspaceProps> = ({ tool, onClose, isE
                   onTogglePageSelect={handleTogglePageSelect}
                   onRotatePage={tool.id === 'rotate-pdf' ? handleRotatePage : undefined}
                   onMovePage={tool.id === 'reorder-pdf' ? handleMovePage : undefined}
-                  mode={
-                    tool.id === 'split-pdf' || tool.id === 'delete-pages'
-                      ? 'split'
-                      : tool.id === 'rotate-pdf'
-                      ? 'rotate'
-                      : 'reorder'
-                  }
+                  mode={getGridMode()}
                 />
               )}
 

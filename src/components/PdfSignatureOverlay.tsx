@@ -18,43 +18,62 @@ export const PdfSignatureOverlay: React.FC<PdfSignatureOverlayProps> = ({
   const [posY, setPosY] = useState(70); // Default ~70% top
   const [widthPercent, setWidthPercent] = useState(25); // Default 25% width
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  const isDraggingRef = useRef(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+
+  const onPositionChangeRef = useRef(onPositionChange);
+  useEffect(() => {
+    onPositionChangeRef.current = onPositionChange;
+  }, [onPositionChange]);
 
   // Update parent options when position changes
   useEffect(() => {
-    onPositionChange({
+    onPositionChangeRef.current({
       xPercent: posX,
       yPercent: posY,
       widthPercent: widthPercent,
     });
-  }, [posX, posY, widthPercent, onPositionChange]);
+  }, [posX, posY, widthPercent]);
+
+  const handleWidthChange = (newWidth: number) => {
+    setWidthPercent(newWidth);
+    setPosX((prevX) => Math.min(prevX, Math.max(0, 100 - newWidth)));
+  };
 
   const handlePointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     const elem = e.currentTarget as HTMLElement;
     if (elem.setPointerCapture) {
       elem.setPointerCapture(e.pointerId);
     }
+    isDraggingRef.current = true;
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
     setIsDragging(true);
-    setDragStart({ x: e.clientX, y: e.clientY });
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging || !containerRef.current) return;
+    if (!isDraggingRef.current || !containerRef.current) return;
+    e.preventDefault();
+    e.stopPropagation();
+
     const rect = containerRef.current.getBoundingClientRect();
-    const deltaX = e.clientX - dragStart.x;
-    const deltaY = e.clientY - dragStart.y;
+    const deltaX = e.clientX - dragStartRef.current.x;
+    const deltaY = e.clientY - dragStartRef.current.y;
 
     const deltaXPercent = (deltaX / rect.width) * 100;
     const deltaYPercent = (deltaY / rect.height) * 100;
 
     setPosX((prevX) => Math.max(0, Math.min(100 - widthPercent, prevX + deltaXPercent)));
-    setPosY((prevY) => Math.max(0, Math.min(85, prevY + deltaYPercent)));
+    setPosY((prevY) => Math.max(0, Math.min(88, prevY + deltaYPercent)));
 
-    setDragStart({ x: e.clientX, y: e.clientY });
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
+    e.stopPropagation();
+    isDraggingRef.current = false;
     setIsDragging(false);
     const elem = e.currentTarget as HTMLElement;
     if (elem.releasePointerCapture && elem.hasPointerCapture(e.pointerId)) {
@@ -80,7 +99,7 @@ export const PdfSignatureOverlay: React.FC<PdfSignatureOverlayProps> = ({
             min="10"
             max="60"
             value={widthPercent}
-            onChange={(e) => setWidthPercent(parseInt(e.target.value))}
+            onChange={(e) => handleWidthChange(parseInt(e.target.value, 10))}
             className="w-24 accent-emerald-600 cursor-pointer"
           />
           <span className="font-mono text-slate-700 font-bold w-8">{widthPercent}%</span>

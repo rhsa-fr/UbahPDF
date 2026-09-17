@@ -57,17 +57,27 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
       const selected = Array.from(e.target.files);
       onFilesAdded(selected);
     }
+    e.target.value = '';
   };
 
   return (
     <div className="w-full">
       {/* Drop Zone Box */}
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={`Pilih atau seret berkas untuk ${tool.name}. Format: ${tool.accept}`}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileInputRef.current?.click();
+          }
+        }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`relative border-2 border-dashed rounded-2xl p-6 sm:p-10 text-center cursor-pointer transition-all duration-200 select-none ${
+        className={`relative border-2 border-dashed rounded-2xl p-6 sm:p-10 text-center cursor-pointer transition-all duration-200 select-none focus:outline-none focus:ring-2 focus:ring-indigo-500/40 ${
           isDragging
             ? 'border-indigo-500 bg-indigo-50/50 scale-[1.01]'
             : 'border-zinc-300 hover:border-indigo-400 bg-gradient-to-b from-white to-zinc-50/80 hover:from-indigo-50/30 hover:to-white'
@@ -96,7 +106,7 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
           <span className="hidden sm:inline">atau <span className="text-indigo-600 font-semibold underline underline-offset-2">pilih dari perangkat</span> ({tool.accept})</span>
         </p>
 
-        <div className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-xl btn-primary text-xs font-semibold shadow-sm">
+        <div aria-hidden="true" className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-xl btn-primary text-xs font-semibold shadow-sm">
           <Plus className="w-3.5 h-3.5" />
           <span>Pilih File</span>
         </div>
@@ -118,7 +128,11 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({
               File Terpilih ({files.length})
             </h4>
             <button
-              onClick={onClearAll}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClearAll();
+              }}
               className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
             >
               Hapus Semua

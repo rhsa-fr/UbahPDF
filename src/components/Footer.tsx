@@ -2,27 +2,13 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Zap, Heart, ArrowRight } from 'lucide-react';
 import { TdocLogo } from './TdocLogo';
+import { TOOLS } from '../data/toolsData';
+import { BLOG_POSTS } from '../data/blogData';
+import { ROUTES } from '../config/routes';
 
-const popularTools = [
-  { id: 'merge-pdf', name: 'Merge PDF' },
-  { id: 'compress-pdf', name: 'Compress PDF' },
-  { id: 'pdf-to-word', name: 'PDF to Word' },
-  { id: 'word-to-pdf', name: 'Word to PDF' },
-];
-
-const moreTools = [
-  { id: 'split-pdf', name: 'Split PDF' },
-  { id: 'image-to-pdf', name: 'JPG to PDF' },
-  { id: 'sign-pdf', name: 'Tanda Tangan PDF' },
-  { id: 'page-numbers', name: 'Nomor Halaman' },
-];
-
-const guides = [
-  { slug: 'cara-kompres-pdf-200kb-cpns-bumn', title: 'Kompres PDF 200KB CPNS' },
-  { slug: 'cara-gabung-ijazah-transkrip-pdf', title: 'Gabung Ijazah & Transkrip' },
-  { slug: 'cara-ubah-foto-ktp-ke-pdf', title: 'Ubah Foto KTP ke PDF' },
-  { slug: 'cara-konversi-pdf-ke-word-gratis', title: 'Konversi PDF ke Word' },
-];
+const popularTools = TOOLS.filter((t) => t.popular).slice(0, 4);
+const moreTools = TOOLS.filter((t) => !t.popular).slice(0, 4);
+const guides = BLOG_POSTS.slice(0, 4);
 
 export const Footer: React.FC = () => {
   return (
@@ -32,7 +18,7 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 sm:gap-6 pb-8 border-b border-zinc-100">
           {/* Brand */}
           <div className="col-span-2 sm:col-span-1 space-y-3">
-            <Link to="/" className="flex items-center gap-2 group">
+            <Link to={ROUTES.HOME} className="flex items-center gap-2 group">
               <TdocLogo size={22} />
               <span className="font-bold text-base tracking-tight text-zinc-900">
                 Ubah<span className="text-indigo-600">PDF</span>
@@ -64,7 +50,7 @@ export const Footer: React.FC = () => {
             <ul className="space-y-1.5">
               {popularTools.map((t) => (
                 <li key={t.id}>
-                  <Link to={`/${t.id}`} className="text-xs text-zinc-500 hover:text-indigo-600 transition-colors">
+                  <Link to={ROUTES.TOOL(t.id)} className="text-xs text-zinc-500 hover:text-indigo-600 transition-colors">
                     {t.name}
                   </Link>
                 </li>
@@ -78,7 +64,7 @@ export const Footer: React.FC = () => {
             <ul className="space-y-1.5">
               {moreTools.map((t) => (
                 <li key={t.id}>
-                  <Link to={`/${t.id}`} className="text-xs text-zinc-500 hover:text-indigo-600 transition-colors">
+                  <Link to={ROUTES.TOOL(t.id)} className="text-xs text-zinc-500 hover:text-indigo-600 transition-colors">
                     {t.name}
                   </Link>
                 </li>
@@ -92,13 +78,13 @@ export const Footer: React.FC = () => {
             <ul className="space-y-1.5">
               {guides.map((g) => (
                 <li key={g.slug}>
-                  <Link to={`/panduan/${g.slug}`} className="text-xs text-zinc-500 hover:text-indigo-600 transition-colors truncate block">
+                  <Link to={ROUTES.BLOG_POST(g.slug)} className="text-xs text-zinc-500 hover:text-indigo-600 transition-colors truncate block">
                     {g.title}
                   </Link>
                 </li>
               ))}
               <li>
-                <Link to="/panduan" className="text-xs text-indigo-600 font-medium hover:text-indigo-700 transition-colors inline-flex items-center gap-1 mt-0.5">
+                <Link to={ROUTES.BLOG_LIST} className="text-xs text-indigo-600 font-medium hover:text-indigo-700 transition-colors inline-flex items-center gap-1 mt-0.5">
                   Semua Panduan
                   <ArrowRight className="w-3 h-3" />
                 </Link>

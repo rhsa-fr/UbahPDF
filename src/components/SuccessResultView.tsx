@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle2, Download, RefreshCw, Pencil } from 'lucide-react';
-import { formatBytes } from '../services/fileUtils';
+import { formatBytes, splitFilename } from '../services/fileUtils';
 
 interface SuccessResultViewProps {
   resultData: {
@@ -20,23 +20,22 @@ export const SuccessResultView: React.FC<SuccessResultViewProps> = ({
   onClearAll,
   onRename,
 }) => {
-  const fullFilename = resultData?.filename || '';
-  const lastDot = fullFilename.lastIndexOf('.');
-  const defaultBaseName = lastDot !== -1 ? fullFilename.slice(0, lastDot) : fullFilename;
-  const extension = lastDot !== -1 ? fullFilename.slice(lastDot) : '';
+  const currentFilename = resultData?.filename || '';
+  const { base: initialBase, ext: extension } = splitFilename(currentFilename);
 
-  const [baseName, setBaseName] = useState(defaultBaseName);
+  const [baseName, setBaseName] = useState(initialBase);
 
   useEffect(() => {
-    const dot = (resultData?.filename || '').lastIndexOf('.');
-    setBaseName(dot !== -1 ? (resultData?.filename || '').slice(0, dot) : (resultData?.filename || ''));
+    const { base } = splitFilename(resultData?.filename || '');
+    setBaseName(base);
   }, [resultData?.filename]);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newBase = e.target.value;
     setBaseName(newBase);
     if (onRename) {
-      onRename(`${newBase.trim() || defaultBaseName}${extension}`);
+      const { ext } = splitFilename(resultData?.filename || '');
+      onRename(`${newBase}${ext}`);
     }
   };
 
@@ -79,15 +78,17 @@ export const SuccessResultView: React.FC<SuccessResultViewProps> = ({
         {resultData?.meta && (
           <div className="mt-2 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-lg inline-block">
             Ukuran berkurang{' '}
-            <span className="font-bold tabular">
-              {Math.max(
-                0,
-                Math.round(
-                  ((resultData.meta.originalSize - resultData.meta.compressedSize) /
-                    resultData.meta.originalSize) *
-                    100
-                )
-              )}
+<span className="font-bold tabular">
+              {resultData.meta.originalSize > 0
+                ? Math.max(
+                    0,
+                    Math.round(
+                      ((resultData.meta.originalSize - resultData.meta.compressedSize) /
+                        resultData.meta.originalSize) *
+                        100
+                    )
+                  )
+                : 0}
               %
             </span>{' '}
             (<span className="tabular">{formatBytes(resultData.meta.originalSize)}</span> →{' '}
@@ -99,6 +100,7 @@ export const SuccessResultView: React.FC<SuccessResultViewProps> = ({
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2 w-full max-w-sm justify-center">
         <button
+          type="button"
           onClick={onDownload}
           className="w-full sm:w-auto px-6 py-2.5 rounded-lg btn-primary text-xs flex items-center justify-center gap-2"
         >
@@ -107,6 +109,7 @@ export const SuccessResultView: React.FC<SuccessResultViewProps> = ({
         </button>
 
         <button
+          type="button"
           onClick={onClearAll}
           className="w-full sm:w-auto px-5 py-2.5 rounded-lg btn-ghost text-xs flex items-center justify-center gap-2"
         >

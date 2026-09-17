@@ -7,6 +7,7 @@ export interface BlogPost {
   category: string;
   readTime: string;
   publishedDate: string;
+  datePublishedISO: string;
   author: string;
   relatedToolId: string;
   summary: string;
@@ -31,6 +32,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Pendaftaran & Lamaran',
     readTime: '3 menit baca',
     publishedDate: '6 Agustus 2026',
+    datePublishedISO: '2026-08-06',
     author: 'Tim UbahPDF',
     relatedToolId: 'compress-pdf',
     summary: 'Syarat ukuran dokumen PDF pada portal SSCASN CPNS dan Rekrutmen Bersama BUMN sangat ketat. Pelajari cara mengecilkan file PDF hingga di bawah 200KB tanpa buram.',
@@ -76,6 +78,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Panduan Dokumen',
     readTime: '2 menit baca',
     publishedDate: '6 Agustus 2026',
+    datePublishedISO: '2026-08-06',
     author: 'Tim UbahPDF',
     relatedToolId: 'merge-pdf',
     summary: 'Banyak syarat lamaran kerja mengharuskan Ijazah dan Transkrip Nilai digabung dalam satu lembar PDF. Simak langkah cepat menggabungkannya.',
@@ -119,6 +122,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Tips & Trik',
     readTime: '2 menit baca',
     publishedDate: '6 Agustus 2026',
+    datePublishedISO: '2026-08-06',
     author: 'Tim UbahPDF',
     relatedToolId: 'image-to-pdf',
     summary: 'Punya foto KTP atau Pas Foto di galeri HP dan perlu diubah jadi PDF? Ikuti panduan cepat mengubah gambar JPG/PNG ke PDF rapi.',
@@ -157,6 +161,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Panduan Dokumen',
     readTime: '3 menit baca',
     publishedDate: '6 Agustus 2026',
+    datePublishedISO: '2026-08-06',
     author: 'Tim UbahPDF',
     relatedToolId: 'pdf-to-word',
     summary: 'Perlu mengedit teks dari file PDF yang terkunci? Pelajari cara mengonversi PDF ke Microsoft Word (.docx) dengan cepat dan akurat.',
