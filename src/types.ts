@@ -1,7 +1,30 @@
 export type Category = 'pdf' | 'office' | 'image' | 'security';
 
+export type ToolId =
+  | 'merge-pdf'
+  | 'split-pdf'
+  | 'compress-pdf'
+  | 'pdf-to-word'
+  | 'word-to-pdf'
+  | 'image-to-pdf'
+  | 'pdf-to-image'
+  | 'page-numbers'
+  | 'rotate-pdf'
+  | 'watermark-pdf'
+  | 'reorder-pdf'
+  | 'sign-pdf'
+  | 'delete-pages'
+  | 'protect-pdf'
+  | 'unlock-pdf'
+  | 'resize-pdf'
+  | 'extract-images'
+  | 'grayscale-pdf'
+  | 'excel-to-pdf'
+  | 'pdf-to-markdown'
+  | 'word-to-markdown';
+
 export interface Tool {
-  id: string;
+  id: ToolId | string;
   name: string;
   description: string;
   iconName: string;

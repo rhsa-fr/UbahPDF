@@ -34,24 +34,32 @@ export const PageReorderGrid: React.FC<PageReorderGridProps> = ({
         {thumbnails.map((thumb, idx) => (
           <div
             key={thumb.pageNumber}
-            onClick={() => mode === 'split' && onTogglePageSelect(thumb.pageNumber)}
             className={`relative group rounded-xl overflow-hidden border transition-all select-none ${
               thumb.selected
                 ? 'border-rose-500 bg-rose-500/10 shadow-lg shadow-rose-500/10'
                 : 'border-slate-800 bg-slate-900/50 opacity-60'
             }`}
           >
-            {/* Page Thumbnail Image */}
-            <div className="relative aspect-[3/4] p-2 flex items-center justify-center bg-slate-900">
-              <img
-                src={thumb.dataUrl}
-                alt={`Halaman ${thumb.pageNumber}`}
-                className="max-h-full max-w-full object-contain rounded shadow transition-transform duration-300"
-                style={{ transform: `rotate(${thumb.rotation}deg)` }}
-              />
+            {/* Page Thumbnail Image / Split Selection Toggle */}
+            {mode === 'split' ? (
+              <button
+                type="button"
+                role="checkbox"
+                aria-checked={thumb.selected}
+                aria-label={`Pilih halaman ${thumb.pageNumber}`}
+                onClick={() => onTogglePageSelect(thumb.pageNumber)}
+                className="w-full relative aspect-[3/4] p-2 flex items-center justify-center bg-slate-900 cursor-pointer focus:outline-none focus:ring-2 focus:ring-rose-500"
+              >
+                <img
+                  src={thumb.dataUrl}
+                  alt={`Halaman ${thumb.pageNumber}`}
+                  className="max-h-full max-w-full object-contain rounded shadow transition-transform duration-300"
+                  style={{
+                    transform: `rotate(${thumb.rotation}deg) ${thumb.rotation % 180 !== 0 ? 'scale(0.75)' : ''}`,
+                  }}
+                />
 
-              {/* Selection Checkmark Badge */}
-              {mode === 'split' && (
+                {/* Selection Checkmark Badge */}
                 <div className="absolute top-2 right-2 z-10">
                   {thumb.selected ? (
                     <CheckCircle2 className="w-5 h-5 text-rose-500 fill-rose-500/20" />
@@ -59,8 +67,19 @@ export const PageReorderGrid: React.FC<PageReorderGridProps> = ({
                     <Circle className="w-5 h-5 text-slate-500" />
                   )}
                 </div>
-              )}
-            </div>
+              </button>
+            ) : (
+              <div className="relative aspect-[3/4] p-2 flex items-center justify-center bg-slate-900">
+                <img
+                  src={thumb.dataUrl}
+                  alt={`Halaman ${thumb.pageNumber}`}
+                  className="max-h-full max-w-full object-contain rounded shadow transition-transform duration-300"
+                  style={{
+                    transform: `rotate(${thumb.rotation}deg) ${thumb.rotation % 180 !== 0 ? 'scale(0.75)' : ''}`,
+                  }}
+                />
+              </div>
+            )}
 
             {/* Bottom Bar / Actions */}
             <div className="p-2 bg-slate-900/90 border-t border-slate-800 flex items-center justify-between text-xs">
@@ -72,12 +91,14 @@ export const PageReorderGrid: React.FC<PageReorderGridProps> = ({
                 {/* Rotate Action */}
                 {onRotatePage && (
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       onRotatePage(thumb.pageNumber);
                     }}
                     className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
                     title="Putar 90°"
+                    aria-label={`Putar halaman ${thumb.pageNumber} 90 derajat`}
                   >
                     <RotateCw className="w-3.5 h-3.5" />
                   </button>
@@ -86,12 +107,14 @@ export const PageReorderGrid: React.FC<PageReorderGridProps> = ({
                 {/* Move Left / Right Action */}
                 {onMovePage && idx > 0 && (
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       onMovePage(idx, idx - 1);
                     }}
                     className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
                     title="Geser ke Kiri"
+                    aria-label={`Geser halaman ${thumb.pageNumber} ke kiri`}
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
                   </button>
@@ -99,12 +122,14 @@ export const PageReorderGrid: React.FC<PageReorderGridProps> = ({
 
                 {onMovePage && idx < thumbnails.length - 1 && (
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       onMovePage(idx, idx + 1);
                     }}
                     className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
                     title="Geser ke Kanan"
+                    aria-label={`Geser halaman ${thumb.pageNumber} ke kanan`}
                   >
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>

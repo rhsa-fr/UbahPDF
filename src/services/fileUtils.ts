@@ -122,3 +122,18 @@ export function toRoman(num: number, uppercase = false): string {
   }
   return uppercase ? result : result.toLowerCase();
 }
+
+/**
+ * Split filename into base name and extension (with dot)
+ */
+export function splitFilename(filename: string): { base: string; ext: string } {
+  if (!filename) return { base: '', ext: '' };
+  const lastDot = filename.lastIndexOf('.');
+  if (lastDot === -1) {
+    return { base: filename, ext: '' };
+  }
+  return {
+    base: filename.slice(0, lastDot),
+    ext: filename.slice(lastDot),
+  };
+}

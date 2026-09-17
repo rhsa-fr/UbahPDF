@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Tool } from '../types';
 import { TOOLS } from '../data/toolsData';
@@ -7,6 +7,7 @@ import { ToolWorkspace } from './ToolWorkspace';
 import { SEOHead } from './SEOHead';
 import { ToolIcon } from './ToolIcons';
 import { ShieldCheck, Zap, Lock, CheckCircle2, HelpCircle, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
+import { ROUTES } from '../config/routes';
 
 interface ToolPageProps {
   tool: Tool;
@@ -30,19 +31,21 @@ export const ToolPage: React.FC<ToolPageProps> = ({ tool }) => {
     ]
   };
 
-  const otherTools = TOOLS
-    .filter((t) => t.id !== tool.id)
-    .sort((a, b) => (b.popular ? 1 : 0) - (a.popular ? 1 : 0))
-    .slice(0, 4);
+  const otherTools = useMemo(() => {
+    return TOOLS
+      .filter((t) => t.id !== tool.id)
+      .sort((a, b) => (b.popular ? 1 : 0) - (a.popular ? 1 : 0))
+      .slice(0, 4);
+  }, [tool.id]);
 
   return (
     <>
       <SEOHead toolId={tool.id} />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Breadcrumb Navigation */}
-        <nav className="flex items-center gap-2 text-xs text-zinc-400 mb-6">
-          <Link to="/" className="hover:text-zinc-900 transition-colors">Beranda</Link>
-          <span>/</span>
+        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-zinc-400 mb-6">
+          <Link to={ROUTES.HOME} className="hover:text-zinc-900 transition-colors">Beranda</Link>
+          <span aria-hidden="true">/</span>
           <span className="text-zinc-900 font-medium truncate">{tool.name}</span>
         </nav>
 
@@ -58,13 +61,16 @@ export const ToolPage: React.FC<ToolPageProps> = ({ tool }) => {
 
         {/* Interactive Workspace Area */}
         <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden mb-10">
-          <ToolWorkspace tool={tool} onClose={() => navigate('/')} isEmbedded={true} />
+          <ToolWorkspace tool={tool} onClose={() => navigate(ROUTES.HOME)} isEmbedded={true} />
         </div>
 
         {/* Collapsible SEO Guide & FAQ Accordion Section */}
         <div className="max-w-3xl mx-auto mb-14">
           {/* Accordion Toggle Trigger Bar */}
           <button
+            type="button"
+            aria-expanded={isAccordionOpen}
+            aria-controls="tool-guide-faq-panel"
             onClick={() => setIsAccordionOpen(!isAccordionOpen)}
             className="w-full bg-white hover:bg-zinc-50 border border-zinc-200 rounded-xl p-4 shadow-xs flex items-center justify-between transition-all group"
           >
@@ -73,7 +79,7 @@ export const ToolPage: React.FC<ToolPageProps> = ({ tool }) => {
                 <HelpCircle className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="font-semibold text-zinc-900 text-xs sm:text-sm group-hover:text-indigo-600 transition-colors">
+                <h3 id="tool-guide-faq-heading" className="font-semibold text-zinc-900 text-xs sm:text-sm group-hover:text-indigo-600 transition-colors">
                   Panduan Cara Pakai & FAQ {tool.name}
                 </h3>
                 <p className="text-[11px] sm:text-xs text-zinc-400">
@@ -88,7 +94,12 @@ export const ToolPage: React.FC<ToolPageProps> = ({ tool }) => {
           </button>
 
           {/* Accordion Content */}
-          <div className={`${isAccordionOpen ? 'block mt-4' : 'hidden'} space-y-6 animate-fadeIn`}>
+          <div
+            id="tool-guide-faq-panel"
+            role="region"
+            aria-labelledby="tool-guide-faq-heading"
+            className={`${isAccordionOpen ? 'block mt-4' : 'hidden'} space-y-6 animate-fadeIn`}
+          >
             {/* How-to Steps */}
             <section className="bg-zinc-50 rounded-xl p-5 border border-zinc-200">
               <h2 className="text-sm sm:text-base font-bold text-zinc-900 mb-4 flex items-center gap-2">
@@ -97,7 +108,7 @@ export const ToolPage: React.FC<ToolPageProps> = ({ tool }) => {
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {seoInfo.steps.map((step, idx) => (
-                  <div key={idx} className="bg-white p-4 rounded-lg border border-zinc-200 shadow-xs relative">
+                  <div key={step.title} className="bg-white p-4 rounded-lg border border-zinc-200 shadow-xs relative">
                     <div className="w-6 h-6 rounded-md bg-indigo-50 text-indigo-600 font-bold text-xs flex items-center justify-center mb-2">
                       {idx + 1}
                     </div>
@@ -143,7 +154,7 @@ export const ToolPage: React.FC<ToolPageProps> = ({ tool }) => {
               </h3>
               <div className="space-y-3 divide-y divide-zinc-100">
                 {seoInfo.faqs.map((faq, idx) => (
-                  <div key={idx} className={idx > 0 ? "pt-3" : ""}>
+                  <div key={faq.question} className={idx > 0 ? "pt-3" : ""}>
                     <h4 className="font-medium text-zinc-900 text-xs sm:text-sm mb-1">{faq.question}</h4>
                     <p className="text-[11px] sm:text-xs text-zinc-500 leading-relaxed">{faq.answer}</p>
                   </div>
@@ -163,7 +174,7 @@ export const ToolPage: React.FC<ToolPageProps> = ({ tool }) => {
               return (
                 <Link
                   key={other.id}
-                  to={`/${other.id}`}
+                  to={ROUTES.TOOL(other.id)}
                   className="precision-card p-3.5 rounded-xl flex flex-col justify-between group"
                 >
                   <div>

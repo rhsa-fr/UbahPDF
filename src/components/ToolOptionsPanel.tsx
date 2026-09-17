@@ -11,6 +11,22 @@ interface ToolOptionsPanelProps {
   onGoToSignStepPlace: () => void;
 }
 
+// Only show panel for tools that actually have configurable options
+const TOOLS_WITH_OPTIONS = new Set([
+  'compress-pdf',
+  'page-numbers',
+  'pdf-to-image',
+  'image-to-pdf',
+  'watermark-pdf',
+  'split-pdf',
+  'sign-pdf',
+  'delete-pages',
+  'protect-pdf',
+  'unlock-pdf',
+  'resize-pdf',
+  'pdf-to-word',
+]);
+
 export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
   tool,
   files,
@@ -19,23 +35,7 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
   onGoToSignStepPlace,
 }) => {
   if (files.length === 0) return null;
-
-  // Only show panel for tools that actually have configurable options
-  const toolsWithOptions = [
-    'compress-pdf',
-    'page-numbers',
-    'pdf-to-image',
-    'image-to-pdf',
-    'watermark-pdf',
-    'split-pdf',
-    'sign-pdf',
-    'delete-pages',
-    'protect-pdf',
-    'unlock-pdf',
-    'resize-pdf',
-    'pdf-to-word',
-  ];
-  if (!toolsWithOptions.includes(tool.id)) return null;
+  if (!TOOLS_WITH_OPTIONS.has(tool.id)) return null;
 
   return (
     <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-4">
@@ -71,7 +71,7 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
               <button
                 key={lvl.id}
                 type="button"
-                onClick={() => setOptions({ ...options, compressLevel: lvl.id as any })}
+                onClick={() => setOptions((prev) => ({ ...prev, compressLevel: lvl.id as ConversionOptions['compressLevel'] }))}
                 className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all ${
                   options.compressLevel === lvl.id
                     ? 'border-rose-500 bg-rose-50 shadow-sm'
@@ -99,7 +99,9 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
             <label className="block text-slate-600 mb-1 font-medium">Format Penomoran</label>
             <select
               value={options.pageNumberFormat}
-              onChange={(e: any) => setOptions({ ...options, pageNumberFormat: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                setOptions((prev) => ({ ...prev, pageNumberFormat: e.target.value as ConversionOptions['pageNumberFormat'] }))
+              }
               className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500"
             >
               <option value="arabic">Angka Arab (1, 2, 3...)</option>
@@ -109,10 +111,12 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
           </div>
 
           <div>
-            <label className="block text-slate-600 mb-1 font-medium font-semibold">Gaya Teks</label>
+            <label className="block text-slate-600 mb-1 font-semibold">Gaya Teks</label>
             <select
               value={options.pageNumberStyle}
-              onChange={(e: any) => setOptions({ ...options, pageNumberStyle: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                setOptions((prev) => ({ ...prev, pageNumberStyle: e.target.value as ConversionOptions['pageNumberStyle'] }))
+              }
               className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500 font-medium"
             >
               <option value="number-only">Angka saja (misal: 1)</option>
@@ -122,10 +126,12 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
           </div>
 
           <div>
-            <label className="block text-slate-600 mb-1 font-medium font-semibold">Posisi Letak Nomor</label>
+            <label className="block text-slate-600 mb-1 font-semibold">Posisi Letak Nomor</label>
             <select
               value={options.pageNumberPosition}
-              onChange={(e: any) => setOptions({ ...options, pageNumberPosition: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                setOptions((prev) => ({ ...prev, pageNumberPosition: e.target.value as ConversionOptions['pageNumberPosition'] }))
+              }
               className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500 font-medium"
             >
               <option value="bottom-right">Bawah Kanan (Standar Buku/Skripsi)</option>
@@ -141,7 +147,7 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
               type="checkbox"
               id="skipCover"
               checked={options.pageNumberSkipCover}
-              onChange={(e) => setOptions({ ...options, pageNumberSkipCover: e.target.checked })}
+              onChange={(e) => setOptions((prev) => ({ ...prev, pageNumberSkipCover: e.target.checked }))}
               className="rounded border-slate-300 text-rose-500 focus:ring-rose-500"
             />
             <label htmlFor="skipCover" className="text-slate-600 font-medium cursor-pointer">
@@ -157,7 +163,9 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
             <label className="block text-slate-600 mb-1 font-medium">Format Gambar Output</label>
             <select
               value={options.imageFormat}
-              onChange={(e: any) => setOptions({ ...options, imageFormat: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                setOptions((prev) => ({ ...prev, imageFormat: e.target.value as ConversionOptions['imageFormat'] }))
+              }
               className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500"
             >
               <option value="png">PNG (Kualitas Terbaik & Jernih)</option>
@@ -173,7 +181,9 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
             <label className="block text-slate-600 mb-1 font-medium">Ukuran Halaman</label>
             <select
               value={options.pageSize}
-              onChange={(e: any) => setOptions({ ...options, pageSize: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                setOptions((prev) => ({ ...prev, pageSize: e.target.value as ConversionOptions['pageSize'] }))
+              }
               className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500"
             >
               <option value="a4">Standar A4</option>
@@ -185,7 +195,9 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
             <label className="block text-slate-600 mb-1 font-medium">Orientasi</label>
             <select
               value={options.orientation}
-              onChange={(e: any) => setOptions({ ...options, orientation: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                setOptions((prev) => ({ ...prev, orientation: e.target.value as ConversionOptions['orientation'] }))
+              }
               className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500"
             >
               <option value="portrait">Tegak (Portrait)</option>
@@ -196,7 +208,9 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
             <label className="block text-slate-600 mb-1 font-medium">Margin Pinggir</label>
             <select
               value={options.margin}
-              onChange={(e: any) => setOptions({ ...options, margin: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                setOptions((prev) => ({ ...prev, margin: e.target.value as ConversionOptions['margin'] }))
+              }
               className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500"
             >
               <option value="none">Tanpa Margin (Penuh)</option>
@@ -215,7 +229,7 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
                 type="radio"
                 name="wmType"
                 checked={options.watermarkType === 'text'}
-                onChange={() => setOptions({ ...options, watermarkType: 'text' })}
+                onChange={() => setOptions((prev) => ({ ...prev, watermarkType: 'text' }))}
                 className="text-rose-500 focus:ring-rose-500"
               />
               <span>Watermark Teks</span>
@@ -225,7 +239,7 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
                 type="radio"
                 name="wmType"
                 checked={options.watermarkType === 'image'}
-                onChange={() => setOptions({ ...options, watermarkType: 'image' })}
+                onChange={() => setOptions((prev) => ({ ...prev, watermarkType: 'image' }))}
                 className="text-rose-500 focus:ring-rose-500"
               />
               <span>Watermark Logo / Gambar</span>
@@ -239,7 +253,9 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
                 <input
                   type="text"
                   value={options.watermarkText}
-                  onChange={(e) => setOptions({ ...options, watermarkText: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setOptions((prev) => ({ ...prev, watermarkText: e.target.value }))
+                  }
                   placeholder="misal: RAHASIA / DRAFT"
                   className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500"
                 />
@@ -251,7 +267,9 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
                   min="12"
                   max="120"
                   value={options.watermarkFontSize}
-                  onChange={(e) => setOptions({ ...options, watermarkFontSize: parseInt(e.target.value) })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setOptions((prev) => ({ ...prev, watermarkFontSize: parseInt(e.target.value, 10) }))
+                  }
                   className="w-full accent-rose-500 cursor-pointer"
                 />
               </div>
@@ -262,10 +280,12 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
               <input
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   if (e.target.files && e.target.files[0]) {
-                    setOptions({ ...options, watermarkImageFile: e.target.files[0] });
+                    const file = e.target.files[0];
+                    setOptions((prev) => ({ ...prev, watermarkImageFile: file }));
                   }
+                  e.target.value = '';
                 }}
                 className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-rose-50 file:text-rose-600 hover:file:bg-rose-100"
               />
@@ -288,7 +308,9 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
           <input
             type="text"
             value={options.splitRange}
-            onChange={(e) => setOptions({ ...options, splitRange: e.target.value })}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setOptions((prev) => ({ ...prev, splitRange: e.target.value }))
+            }
             placeholder="Kosongkan untuk menggunakan hasil klik pratinjau di atas"
             className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-rose-500"
           />
@@ -299,7 +321,7 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
         <div className="space-y-4 text-xs">
           <SignatureCanvas
             onSaveSignature={(dataUrl) =>
-              setOptions({ ...options, signatureDataUrl: dataUrl })
+              setOptions((prev) => ({ ...prev, signatureDataUrl: dataUrl }))
             }
             savedDataUrl={options.signatureDataUrl}
           />
@@ -330,7 +352,9 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
           <input
             type="password"
             value={options.userPassword || ''}
-            onChange={(e) => setOptions({ ...options, userPassword: e.target.value })}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setOptions((prev) => ({ ...prev, userPassword: e.target.value }))
+            }
             placeholder="Ketik password untuk mengunci file..."
             className="w-full p-3 rounded-lg bg-white border border-zinc-200 text-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 font-medium"
           />
@@ -348,7 +372,9 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
           <input
             type="password"
             value={options.unlockPassword || ''}
-            onChange={(e) => setOptions({ ...options, unlockPassword: e.target.value })}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setOptions((prev) => ({ ...prev, unlockPassword: e.target.value }))
+            }
             placeholder="Ketik password PDF yang ingin dibuka kuncinya..."
             className="w-full p-3 rounded-lg bg-white border border-zinc-200 text-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 font-medium"
           />
@@ -373,7 +399,9 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
                 <button
                   key={size.id}
                   type="button"
-                  onClick={() => setOptions({ ...options, resizeTarget: size.id as any })}
+                  onClick={() =>
+                    setOptions((prev) => ({ ...prev, resizeTarget: size.id as ConversionOptions['resizeTarget'] }))
+                  }
                   className={`p-3 rounded-lg border text-left transition-all ${
                     selected
                       ? 'border-indigo-400 bg-indigo-50 ring-2 ring-indigo-500/20'
@@ -419,7 +447,9 @@ export const ToolOptionsPanel: React.FC<ToolOptionsPanelProps> = ({
                 <button
                   key={fmt.id}
                   type="button"
-                  onClick={() => setOptions({ ...options, pdfToWordFormat: fmt.id as any })}
+                  onClick={() =>
+                    setOptions((prev) => ({ ...prev, pdfToWordFormat: fmt.id as ConversionOptions['pdfToWordFormat'] }))
+                  }
                   className={`p-3 rounded-xl border text-left transition-all relative ${
                     selected
                       ? 'border-blue-500 bg-blue-50/80 ring-2 ring-blue-500/20 shadow-sm'

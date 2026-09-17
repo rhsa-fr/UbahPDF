@@ -1,18 +1,30 @@
-import React from 'react';
+import React, { memo } from 'react';
+import type { ToolId } from '../types';
 
 interface ToolIconProps {
-  toolId: string;
+  toolId: ToolId | string;
   className?: string;
   size?: number;
 }
 
-export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size = 44 }) => {
+export const ToolIcon: React.FC<ToolIconProps> = memo(({ toolId, className = '', size = 44 }) => {
+  const svgProps = {
+    width: size,
+    height: size,
+    viewBox: '0 0 48 48',
+    fill: 'none',
+    xmlns: 'http://www.w3.org/2000/svg',
+    className,
+    'aria-hidden': true,
+    focusable: false,
+  };
+
   switch (toolId) {
     // ── 1. GABUNGKAN PDF (Merge) ──────────────────────────────
     // Dua kartu merah/coral bertumpuk diagonal dengan panah saling mendekat
     case 'merge-pdf':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           {/* Back document */}
           <rect x="6" y="6" width="22" height="22" rx="4.5" fill="#f87171" fillOpacity="0.35" />
           {/* Front document */}
@@ -25,10 +37,10 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
       );
 
     // ── 2. PISAHKAN PDF (Split) ──────────────────────────────
-    // Dua kartu merah/coral bertumpuk diagonal dengan panah saling menjauh
+    // Dua kartu oranye bertumpuk diagonal dengan panah saling menjauh
     case 'split-pdf':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           {/* Back document */}
           <rect x="6" y="6" width="22" height="22" rx="4.5" fill="#fb923c" fillOpacity="0.35" />
           {/* Front document */}
@@ -44,7 +56,7 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // Empat kotak hijau kecil dengan 4 panah mengarah ke tengah
     case 'compress-pdf':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           {/* 4 Corner Tiles */}
           <rect x="8" y="8" width="13" height="13" rx="3" fill="#10b981" />
           <rect x="27" y="8" width="13" height="13" rx="3" fill="#10b981" />
@@ -62,7 +74,7 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // Dokumen latar abu/merah muda + dokumen depan biru berhuruf 'W'
     case 'pdf-to-word':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           {/* Back document (PDF) */}
           <rect x="7" y="7" width="22" height="22" rx="4.5" fill="#dbeafe" />
           <path d="M13 13L19 19M19 19H14.5M19 19V14.5" stroke="#3b82f6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -78,7 +90,7 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // Dokumen latar biru 'W' + dokumen depan merah PDF
     case 'word-to-pdf':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           {/* Back document (Word) */}
           <rect x="7" y="7" width="22" height="22" rx="4.5" fill="#dbeafe" />
           <text x="18" y="23" fill="#2563eb" fontSize="13" fontWeight="800" textAnchor="middle" fontFamily="system-ui, -apple-system, sans-serif">
@@ -94,7 +106,7 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // Kartu foto pemandangan di belakang + kartu PDF di depan
     case 'image-to-pdf':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           {/* Back document (Image) */}
           <rect x="7" y="7" width="22" height="22" rx="4.5" fill="#e0e7ff" />
           <circle cx="14" cy="14" r="2.5" fill="#6366f1" />
@@ -109,7 +121,7 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // Kartu PDF di belakang + kartu foto pemandangan di depan
     case 'pdf-to-image':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           {/* Back document (PDF) */}
           <rect x="7" y="7" width="22" height="22" rx="4.5" fill="#fee2e2" />
           <path d="M13 13L19 19M19 19H14.5M19 19V14.5" stroke="#ef4444" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -124,7 +136,7 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // Kartu dengan badge angka 123
     case 'page-numbers':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           <rect x="9" y="6" width="30" height="36" rx="5" fill="#ede9fe" stroke="#c4b5fd" strokeWidth="1.5" />
           <rect x="14" y="12" width="20" height="2.5" rx="1" fill="#8b5cf6" fillOpacity="0.4" />
           <rect x="14" y="18" width="16" height="2.5" rx="1" fill="#8b5cf6" fillOpacity="0.4" />
@@ -141,7 +153,7 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // Dokumen dengan panah melingkar 90°
     case 'rotate-pdf':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           <rect x="11" y="11" width="26" height="26" rx="5" fill="#d1fae5" />
           <rect x="15" y="15" width="18" height="18" rx="3.5" fill="#10b981" />
           {/* Rotate circular arrow */}
@@ -154,7 +166,7 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // Dokumen dengan cap stempel 'CONFIDENTIAL'
     case 'watermark-pdf':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           <rect x="8" y="6" width="32" height="36" rx="5" fill="#fce7f3" stroke="#fbcfe8" strokeWidth="1.5" />
           <rect x="14" y="13" width="20" height="2.5" rx="1" fill="#ec4899" fillOpacity="0.3" />
           <rect x="14" y="19" width="15" height="2.5" rx="1" fill="#ec4899" fillOpacity="0.3" />
@@ -172,7 +184,7 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // Kartu-kartu bertingkat dengan panah atas bawah
     case 'reorder-pdf':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           <rect x="7" y="12" width="24" height="28" rx="4" fill="#e0e7ff" stroke="#c7d2fe" strokeWidth="1.2" />
           <rect x="17" y="8" width="24" height="28" rx="4" fill="#6366f1" />
           {/* Swap arrows */}
@@ -185,7 +197,7 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // Dokumen dengan garis tanda tangan dan pena kaligrafi
     case 'sign-pdf':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           <rect x="8" y="6" width="32" height="36" rx="5" fill="#d1fae5" stroke="#a7f3d0" strokeWidth="1.5" />
           {/* Signature stroke */}
           <path d="M14 31C16 28 18 27 20 28C22 29 23 32 25 30C27 28 29 28 32 30" stroke="#059669" strokeWidth="2" strokeLinecap="round" />
@@ -199,7 +211,7 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // Dokumen merah dengan tanda silang
     case 'delete-pages':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           <rect x="8" y="6" width="32" height="36" rx="5" fill="#fee2e2" stroke="#fecaca" strokeWidth="1.5" />
           {/* Document lines */}
           <rect x="14" y="13" width="20" height="2.5" rx="1" fill="#ef4444" fillOpacity="0.3" />
@@ -214,7 +226,7 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // Dokumen ungu dengan gembok terkunci
     case 'protect-pdf':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           <rect x="8" y="6" width="32" height="36" rx="5" fill="#ede9fe" stroke="#ddd6fe" strokeWidth="1.5" />
           {/* Lock badge */}
           <circle cx="24" cy="27" r="11" fill="#8b5cf6" />
@@ -227,7 +239,7 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // Dokumen hijau dengan gembok terbuka
     case 'unlock-pdf':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           <rect x="8" y="6" width="32" height="36" rx="5" fill="#d1fae5" stroke="#a7f3d0" strokeWidth="1.5" />
           {/* Unlocked badge */}
           <circle cx="24" cy="27" r="11" fill="#10b981" />
@@ -240,7 +252,7 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // Dokumen dengan panah diagonal skala 4 arah
     case 'resize-pdf':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           <rect x="8" y="6" width="32" height="36" rx="5" fill="#e0e7ff" stroke="#c7d2fe" strokeWidth="1.5" />
           <rect x="13" y="11" width="22" height="26" rx="3" stroke="#6366f1" strokeWidth="1.5" strokeDasharray="3 3" />
           {/* Expand arrows */}
@@ -253,7 +265,7 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // Kartu PDF dengan foto terlempar keluar
     case 'extract-images':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           <rect x="7" y="10" width="26" height="30" rx="4.5" fill="#e0f2fe" stroke="#bae6fd" strokeWidth="1.5" />
           {/* Extracted photo popping out */}
           <rect x="19" y="8" width="22" height="22" rx="4.5" fill="#0284c7" />
@@ -267,7 +279,7 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // Dokumen setengah hitam pekat setengah putih abu
     case 'grayscale-pdf':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           <rect x="9" y="7" width="30" height="34" rx="5" fill="#f4f4f5" stroke="#d4d4d8" strokeWidth="1.5" />
           {/* Half circle contrast badge */}
           <circle cx="24" cy="24" r="11" fill="#27272a" />
@@ -280,14 +292,14 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // Kartu hijau 'X' di belakang + kartu merah PDF di depan
     case 'excel-to-pdf':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           {/* Back document (Excel) */}
           <rect x="7" y="7" width="22" height="22" rx="4.5" fill="#dcfce7" />
           <text x="18" y="23" fill="#16a34a" fontSize="13" fontWeight="800" textAnchor="middle" fontFamily="system-ui, -apple-system, sans-serif">
             X
           </text>
           {/* Front document (PDF) */}
-          <rect x="19" y="19" width="22" height="22" rx="4.5" fill="#16a34a" />
+          <rect x="19" y="19" width="22" height="22" rx="4.5" fill="#ef4444" />
           <path d="M35 35L29 29M29 29H33.5M29 29V33.5" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       );
@@ -296,7 +308,7 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // Dokumen merah PDF + dokumen biru gelap berhuruf 'M↓'
     case 'pdf-to-markdown':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           <rect x="7" y="7" width="22" height="22" rx="4.5" fill="#fee2e2" />
           <path d="M13 13L19 19M19 19H14.5M19 19V14.5" stroke="#ef4444" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           <rect x="19" y="19" width="22" height="22" rx="4.5" fill="#0284c7" />
@@ -310,7 +322,7 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // Dokumen biru Word + dokumen cyan berhuruf 'M↓'
     case 'word-to-markdown':
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           <rect x="7" y="7" width="22" height="22" rx="4.5" fill="#dbeafe" />
           <text x="18" y="23" fill="#2563eb" fontSize="13" fontWeight="800" textAnchor="middle" fontFamily="system-ui, -apple-system, sans-serif">
             W
@@ -325,11 +337,11 @@ export const ToolIcon: React.FC<ToolIconProps> = ({ toolId, className = '', size
     // ── DEFAULT FALLBACK ──────────────────────────────────────
     default:
       return (
-        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <svg {...svgProps}>
           <rect x="10" y="6" width="28" height="36" rx="5" fill="#e0e7ff" />
           <rect x="15" y="13" width="18" height="2.5" rx="1" fill="#4f46e5" fillOpacity="0.4" />
           <rect x="15" y="19" width="14" height="2.5" rx="1" fill="#4f46e5" fillOpacity="0.4" />
         </svg>
       );
   }
-};
+}) as React.FC<ToolIconProps>;

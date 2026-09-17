@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { ToolIcon } from './ToolIcons';
 import type { Tool } from '../types';
+import { ROUTES } from '../config/routes';
 
 interface ToolCardProps {
   tool: Tool;
@@ -11,7 +12,7 @@ interface ToolCardProps {
 export const ToolCard: React.FC<ToolCardProps> = ({ tool }) => {
   return (
     <Link
-      to={`/${tool.id}`}
+      to={ROUTES.TOOL(tool.id)}
       className="group precision-card rounded-xl p-3.5 sm:p-5 cursor-pointer flex flex-col justify-between select-none bg-white hover:border-zinc-300 transition-all"
     >
       {/* Card Content */}
@@ -19,8 +20,7 @@ export const ToolCard: React.FC<ToolCardProps> = ({ tool }) => {
         <div className="flex items-center justify-between mb-2 sm:mb-3">
           {/* Custom Visual Document Icon */}
           <div className="transition-transform duration-200 group-hover:scale-105">
-            <ToolIcon toolId={tool.id} size={38} className="sm:hidden" />
-            <ToolIcon toolId={tool.id} size={44} className="hidden sm:block" />
+            <ToolIcon toolId={tool.id} className="w-[38px] h-[38px] sm:w-[44px] sm:h-[44px]" />
           </div>
 
           {tool.popular && (

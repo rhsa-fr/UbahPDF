@@ -11,6 +11,7 @@ import { Footer } from './components/Footer';
 import { SEOHead } from './components/SEOHead';
 import { ScrollToTop } from './components/ScrollToTop';
 import { TOOLS } from './data/toolsData';
+import { ROUTES } from './config/routes';
 
 const ToolRouteHandler: React.FC = () => {
   const { toolId } = useParams<{ toolId: string }>();
@@ -43,6 +44,11 @@ export const App: React.FC = () => {
     });
   }, [selectedCategory, searchQuery]);
 
+  const handleSelectCategory = (category: string) => {
+    setSelectedCategory(category);
+    setSearchQuery('');
+  };
+
   const handleReset = () => {
     setSelectedCategory('all');
     setSearchQuery('');
@@ -55,14 +61,14 @@ export const App: React.FC = () => {
 
       <Navbar
         selectedCategory={selectedCategory}
-        onSelectCategory={setSelectedCategory}
+        onSelectCategory={handleSelectCategory}
         onReset={handleReset}
       />
 
       <main className="flex-1">
         <Routes>
           <Route
-            path="/"
+            path={ROUTES.HOME}
             element={
               <>
                 <SEOHead toolId={null} />
@@ -72,7 +78,7 @@ export const App: React.FC = () => {
               </>
             }
           />
-          <Route path="/panduan" element={<BlogListPage />} />
+          <Route path={ROUTES.BLOG_LIST} element={<BlogListPage />} />
           <Route path="/panduan/:slug" element={<BlogPostPage />} />
           <Route path="/:toolId" element={<ToolRouteHandler />} />
         </Routes>

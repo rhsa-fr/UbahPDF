@@ -1,33 +1,21 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { BLOG_POSTS } from '../data/blogData';
 import { Search, Clock, Calendar, ArrowRight } from 'lucide-react';
+import { useSeoMeta } from '../hooks/useSeoMeta';
+import { BASE_URL, ROUTES } from '../config/routes';
+
+const BLOG_CATEGORIES = ['Semua', ...Array.from(new Set(BLOG_POSTS.map((p) => p.category)))];
 
 export const BlogListPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Semua');
 
-  useEffect(() => {
-    document.title = 'Panduan & Tips Seputar Dokumen PDF - UbahPDF';
-    
-    let canonical = document.querySelector('link[rel="canonical"]');
-    if (!canonical) {
-      canonical = document.createElement('link');
-      canonical.setAttribute('rel', 'canonical');
-      document.head.appendChild(canonical);
-    }
-    canonical.setAttribute('href', 'https://ubahpdf.my.id/panduan');
-
-    let desc = document.querySelector('meta[name="description"]');
-    if (desc) {
-      desc.setAttribute('content', 'Kumpulan panduan, tips, dan tutorial lengkap seputar pengolahan dokumen PDF untuk CPNS, BUMN, perkuliahan, dan dunia kerja.');
-    }
-  }, []);
-
-  const categories = useMemo(() => {
-    const cats = ['Semua', ...new Set(BLOG_POSTS.map((p) => p.category))];
-    return cats;
-  }, []);
+  useSeoMeta({
+    title: 'Panduan & Tips Seputar Dokumen PDF - UbahPDF',
+    description: 'Kumpulan panduan, tips, dan tutorial lengkap seputar pengolahan dokumen PDF untuk CPNS, BUMN, perkuliahan, dan dunia kerja.',
+    canonicalUrl: `${BASE_URL}${ROUTES.GUIDES}`,
+  });
 
   const filteredPosts = useMemo(() => {
     return BLOG_POSTS.filter((post) => {
@@ -54,7 +42,7 @@ export const BlogListPage: React.FC = () => {
       {/* Filter & Search Bar */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-3 mb-8 max-w-4xl mx-auto">
         <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-none pb-1 bg-zinc-100/90 p-1 rounded-lg border border-zinc-200/80 w-full md:w-auto">
-          {categories.map((cat) => (
+          {BLOG_CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
@@ -91,7 +79,7 @@ export const BlogListPage: React.FC = () => {
           {filteredPosts.map((post) => (
             <Link
               key={post.id}
-              to={`/panduan/${post.slug}`}
+              to={ROUTES.GUIDE_DETAIL(post.slug)}
               className="precision-card rounded-xl p-5 sm:p-6 flex flex-col justify-between group"
             >
               <div>

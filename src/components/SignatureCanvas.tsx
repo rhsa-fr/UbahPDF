@@ -16,29 +16,95 @@ export const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
   const [hasDrawn, setHasDrawn] = useState(false);
   const [penColor, setPenColor] = useState('#0f172a'); // Dark navy/black default
   const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const lastPosRef = useRef<{ x: number; y: number } | null>(null);
 
-  // Initialize Canvas
+  const getCoordinates = (e: React.MouseEvent | React.TouchEvent): { x: number; y: number } | null => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    const rect = canvas.getBoundingClientRect();
+    let clientX = 0;
+    let clientY = 0;
+
+    if ('touches' in e) {
+      if (!e.touches || e.touches.length === 0) return null;
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top,
+    };
+  };
+
+  // Initialize Canvas with DPR scaling and state restoration
+  useEffect(() => {
+    if (activeTab !== 'draw' || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const width = rect.width || 500;
+    const height = rect.height || 180;
+
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+    ctx.scale(dpr, dpr);
+
+    ctx.strokeStyle = penColor;
+    ctx.fillStyle = penColor;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    if (savedDataUrl) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, width, height);
+      };
+      img.src = savedDataUrl;
+      setHasDrawn(true);
+    }
+  }, [activeTab, savedDataUrl]);
+
+  // Update pen color without clearing canvas
   useEffect(() => {
     if (activeTab === 'draw' && canvasRef.current) {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvasRef.current.getContext('2d');
       if (ctx) {
         ctx.strokeStyle = penColor;
-        ctx.lineWidth = 3;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
+        ctx.fillStyle = penColor;
       }
     }
-  }, [activeTab, penColor]);
+  }, [penColor, activeTab]);
 
-  // Mouse & Touch Drawing Handlers
+  // Mouse & Touch Drawing Handlers with O(1) incremental segments
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!canvasRef.current) return;
+    const ctx = canvasRef.current.getContext('2d');
+    if (!ctx) return;
+
+    const pos = getCoordinates(e);
+    if (!pos) return;
+
+    lastPosRef.current = pos;
     setIsDrawing(true);
     setHasDrawn(true);
-    draw(e);
+
+    // Draw immediate dot on tap / mouse down
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, ctx.lineWidth / 2, 0, Math.PI * 2);
+    ctx.fillStyle = penColor;
+    ctx.fill();
   };
 
   const stopDrawing = () => {
+    lastPosRef.current = null;
     if (isDrawing && canvasRef.current) {
       setIsDrawing(false);
       const dataUrl = canvasRef.current.toDataURL('image/png');
@@ -47,30 +113,32 @@ export const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
   };
 
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!isDrawing || !canvasRef.current) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    if (!isDrawing || !canvasRef.current || !lastPosRef.current) return;
+    const ctx = canvasRef.current.getContext('2d');
     if (!ctx) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    const pos = getCoordinates(e);
+    if (!pos) return;
 
-    const x = (clientX - rect.left) * (canvas.width / rect.width);
-    const y = (clientY - rect.top) * (canvas.height / rect.height);
-
-    ctx.lineTo(x, y);
-    ctx.stroke();
+    // Incremental segment drawing (O(1) complexity per event)
     ctx.beginPath();
-    ctx.moveTo(x, y);
+    ctx.moveTo(lastPosRef.current.x, lastPosRef.current.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+
+    lastPosRef.current = pos;
   };
 
   const handleClear = () => {
+    lastPosRef.current = null;
     if (canvasRef.current) {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
       if (ctx) {
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
         ctx.beginPath();
       }
       setHasDrawn(false);
@@ -89,8 +157,12 @@ export const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
           setHasDrawn(true);
         }
       };
+      reader.onerror = (err) => {
+        console.error('Error reading signature image file:', err);
+      };
       reader.readAsDataURL(file);
     }
+    e.target.value = '';
   };
 
   return (
@@ -201,8 +273,17 @@ export const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
             </div>
           ) : (
             <div
+              role="button"
+              tabIndex={0}
+              aria-label="Pilih gambar tanda tangan"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  imageInputRef.current?.click();
+                }
+              }}
               onClick={() => imageInputRef.current?.click()}
-              className="cursor-pointer space-y-2 select-none"
+              className="cursor-pointer space-y-2 select-none focus:outline-none focus:ring-2 focus:ring-emerald-500 rounded-xl p-2"
             >
               <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
                 <Upload className="w-6 h-6" />
